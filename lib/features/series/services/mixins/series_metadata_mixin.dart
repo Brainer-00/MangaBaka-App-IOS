@@ -43,9 +43,21 @@ mixin SeriesMetadataMixin {
   Future<List<SeriesWork>> fetchSeriesWorks(String id) =>
       _fetchList(id, 'works', SeriesWork.fromJson);
 
+  /// Uses `/relationships`: the older `/related` is deprecated and answers
+  /// with an object of relation buckets rather than a `data` array, which
+  /// [_fetchList] would read as empty. Each item wraps the series.
   Future<List<Series>> fetchSeriesRelated(String id) async =>
       _allowedByContentRating(
-        await _fetchList(id, 'related', Series.fromJson),
+        await _fetchList(
+          id,
+          'relationships',
+          (item) {
+            final nested = item['series'];
+            if (nested is! Map) return null;
+            return Series.fromJson(nested.cast<String, dynamic>());
+          },
+          params: {'limit': 50},
+        ),
       );
 
   /// Similar titles come back wrapped (`{series: {...}, score: …}`) and in the
