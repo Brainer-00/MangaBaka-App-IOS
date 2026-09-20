@@ -5,6 +5,7 @@ import 'package:mangabaka_app/core/logging/logging_service.dart';
 import 'package:mangabaka_app/core/settings/settings_enums.dart';
 import 'package:mangabaka_app/core/settings/settings_manager.dart';
 import 'package:mangabaka_app/core/utils/widget_utils.dart';
+import 'package:mangabaka_app/core/widgets/app_snack_bar.dart';
 import 'package:mangabaka_app/features/browse/models/search_filters.dart';
 import 'package:mangabaka_app/features/browse/utils/browse_helpers.dart';
 import 'package:mangabaka_app/features/browse/widgets/filters/filter_chips_row.dart';
@@ -154,8 +155,10 @@ class LibraryScreenState extends State<LibraryScreen>
   Future<void> _login() async {
     final errorKey = await _session.login();
     if (errorKey == null || !mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(LocalizationService().translate(errorKey))),
+    AppSnackBar.show(
+      context,
+      LocalizationService().translate(errorKey),
+      isError: true,
     );
   }
 

@@ -68,7 +68,7 @@ class LibraryGridList extends StatelessWidget {
   }
 
   /// Builds a single tappable library item with hover-prefetch for desktop.
-  Widget _buildEntryItem(LibraryEntry entry, SeriesService seriesService) {
+  Widget _buildEntryItem(LibraryEntry entry, SeriesService seriesService, AppListStyle activeStyle) {
     return MouseRegion(
       onEnter: (_) => seriesService.fetchSeries(entry.series.id),
       child: GestureDetector(
@@ -80,9 +80,11 @@ class LibraryGridList extends StatelessWidget {
         // whose flight overlaps the heavy app-bar region the whole way).
         // The slideUp already animates the cover into place on its own.
         child: EntryListItem(
+          key: ValueKey('${activeStyle.name}_${entry.series.id}'),
           series: entry.series,
           isLibrary: true,
           heroTagPrefix: 'library',
+          listStyle: activeStyle,
         ),
       ),
     );
@@ -114,7 +116,7 @@ class LibraryGridList extends StatelessWidget {
                 itemCount: items.length,
                 itemBuilder: (context, index) => MbEntrance(
                   index: index,
-                  child: _buildEntryItem(items[index], seriesService),
+                  child: _buildEntryItem(items[index], seriesService, activeStyle),
                 ),
               );
             }
@@ -139,7 +141,7 @@ class LibraryGridList extends StatelessWidget {
               itemCount: items.length,
               itemBuilder: (context, index) => MbEntrance(
                 index: index,
-                child: _buildEntryItem(items[index], seriesService),
+                child: _buildEntryItem(items[index], seriesService, activeStyle),
               ),
             );
           }
@@ -172,7 +174,7 @@ class LibraryGridList extends StatelessWidget {
           itemCount: items.length,
           itemBuilder: (context, index) => MbEntrance(
             index: index,
-            child: _buildEntryItem(items[index], seriesService),
+            child: _buildEntryItem(items[index], seriesService, activeStyle),
           ),
         );
       },

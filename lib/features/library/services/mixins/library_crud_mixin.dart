@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:async';
+import 'dart:math';
 import 'package:http/http.dart' as http;
 import 'package:mangabaka_app/features/library/constants/library_constants.dart';
 import 'package:mangabaka_app/core/exceptions/app_exceptions.dart';
@@ -213,6 +214,81 @@ mixin LibraryCrudMixin on LibraryServiceBase {
     } catch (e, st) {
       _rethrowAsAppException(e, st, seriesId, 'create library entry');
     }
+  }
+
+  /// Most entries the batch endpoint takes in one request.
+  static const int batchLimit = 100;
+
+  /// Adds many series to the library at once, each in [state].
+  ///
+  /// Uses `POST /my/library/batch`, which creates missing entries but *patches*
+  /// existing ones - so callers should leave out series already in the library,
+  /// or their state would be overwritten. Each request is atomic (one bad
+  /// series fails its whole chunk of up to [batchLimit]); chunks already
+  /// accepted stay accepted, and the local database is re-synced either way.
+  ///
+  /// Returns how many entries the server reports as newly created.
+  Future<int> createLibraryEntriesBatch(
+    List<String> seriesIds,
+    String state,
+  ) async {
+    final ids = [
+      for (final id in seriesIds)
+        if (int.tryParse(id) != null) int.parse(id),
+    ];
+    if (ids.isEmpty) return 0;
+
+    logger.info('Batch-adding ${ids.length} series with state: $state');
+    final token = await auth.getValidAccessToken();
+    final url = Uri.parse('${LibraryConstants.baseUrl}/batch');
+    var created = 0;
+    var anyAccepted = false;
+
+    try {
+      for (var i = 0; i < ids.length; i += batchLimit) {
+        final chunk = ids.sublist(i, min(i + batchLimit, ids.length));
+        final response = await http
+            .post(
+              url,
+              headers: _buildAuthHeaders(token),
+              body: jsonEncode([
+                for (final id in chunk) {'series_id': id, 'state': state},
+              ]),
+            )
+            .timeout(
+              const Duration(seconds: AppConstants.networkTimeoutSeconds),
+              onTimeout: () =>
+                  throw TimeoutException('Batch add request timed out'),
+            );
+
+        _assertAuthorized(response, 'batch');
+        if (response.statusCode != 200) {
+          logger.severe('Batch add failed. Status: ${response.statusCode}');
+          throw ApiException(
+            message: 'Failed to add series to library',
+            statusCode: response.statusCode,
+            responseBody: response.body,
+            code: 'BATCH_CREATE_FAILED',
+          );
+        }
+        anyAccepted = true;
+        final data = (jsonDecode(response.body) as Map)['data'];
+        if (data is List) {
+          created += data.where((e) => e is Map && e['action'] == 'created').length;
+        }
+      }
+    } catch (e, st) {
+      _rethrowAsAppException(e, st, 'batch', 'batch add to library');
+    } finally {
+      if (anyAccepted) {
+        try {
+          await syncLibrary();
+        } catch (e) {
+          logger.warning('Sync after batch add failed: $e');
+        }
+      }
+    }
+    return created;
   }
 
   Future<void> deleteEntry(String seriesId) async {

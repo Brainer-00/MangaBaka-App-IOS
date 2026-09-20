@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mangabaka_app/features/library/import/bulk_import_screen.dart';
 import 'package:mangabaka_app/core/constants/app_constants.dart';
 import 'package:mangabaka_app/core/localization/localization_service.dart';
 import 'package:mangabaka_app/core/settings/settings_enums.dart';
@@ -115,6 +116,13 @@ class LibraryAppBar extends StatelessWidget implements PreferredSizeWidget {
           ),
           const SizedBox(width: 8),
         ],
+        WidgetUtils.tooltip(
+          message: l10n.translate('import_list'),
+          child: IconButton(
+            icon: const Icon(Icons.playlist_add_rounded),
+            onPressed: () => BulkImportScreen.open(context),
+          ),
+        ),
         IconButton(
           icon: const Icon(Icons.settings_outlined),
           onPressed: () => SettingsScreen.show(context),
