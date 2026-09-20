@@ -4,6 +4,7 @@ import 'package:mangabaka_app/core/theme/app_typography.dart';
 import 'package:flutter/material.dart';
 import 'package:mangabaka_app/core/constants/app_constants.dart';
 import 'package:mangabaka_app/features/browse/models/search_filters.dart';
+import 'package:mangabaka_app/features/browse/models/sort_options.dart';
 import 'package:mangabaka_app/features/series/services/series_search_service.dart';
 import 'package:mangabaka_app/core/di/service_locator.dart';
 
@@ -36,38 +37,11 @@ class _SearchFilterBottomSheetState extends State<SearchFilterBottomSheet> {
   late SearchFilters _filters;
   late final SeriesSearchService _searchService;
  
-  final List<String> _types = ['manga', 'manhwa', 'manhua', 'novel', 'oel'];
-  final List<String> _statuses = [
-    'ongoing',
-    'releasing',
-    'completed',
-    'hiatus',
-    'cancelled',
-  ];
- 
-  Map<String, String> _getSortOptions(LocalizationService l10n) {
-    final options = {
-      'name_asc': l10n.translate('title_asc'),
-      'name_desc': l10n.translate('title_desc'),
-      if (!widget.showLibrarySorts) ...{
-        'popularity_asc': l10n.translate('popularity_asc'),
-        'popularity_desc': l10n.translate('popularity_desc'),
-      },
-      'score_desc': l10n.translate('rating_desc'),
-      'score_asc': l10n.translate('rating_asc'),
-      'chapters_desc': l10n.translate('chapters_desc'),
-      'chapters_asc': l10n.translate('chapters_asc'),
-    };
+  final List<String> _types = filterSeriesTypes;
+  final List<String> _statuses = filterPublicationStatuses;
 
-    if (widget.showLibrarySorts) {
-      options['unread_desc'] = l10n.translate('unread_desc');
-      options['unread_asc'] = l10n.translate('unread_asc');
-    }
-
-    options['random'] = l10n.translate('random_sort');
-
-    return options;
-  }
+  Map<String, String> _getSortOptions(LocalizationService l10n) =>
+      searchSortOptions(l10n, library: widget.showLibrarySorts);
  
   List<Map<String, dynamic>> _genres = [];
   List<Map<String, dynamic>> _tags = [];

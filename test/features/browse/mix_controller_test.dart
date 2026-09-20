@@ -31,6 +31,7 @@ class _MockMixService extends Fake implements MixService {
     required List<int> seriesIds,
     int limit = 24,
     List<String>? contentRating,
+    List<String>? notContentRating,
     bool strict = false,
     String? blendUserId,
     String? excludeUserLibrary,
@@ -42,6 +43,7 @@ class _MockMixService extends Fake implements MixService {
       'blendUserId': blendUserId,
       'excludeUserLibrary': excludeUserLibrary,
       'contentRating': contentRating,
+      'notContentRating': notContentRating,
     };
     final pending = pendingMixResponse;
     if (pending != null) {

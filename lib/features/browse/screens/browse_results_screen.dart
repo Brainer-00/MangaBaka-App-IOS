@@ -14,6 +14,8 @@ import 'package:mangabaka_app/features/browse/controllers/browse_controller.dart
 import 'package:mangabaka_app/core/utils/widget_utils.dart';
 import 'package:mangabaka_app/core/logging/logging_service.dart';
 import 'package:mangabaka_app/core/settings/settings_enums.dart';
+import 'package:mangabaka_app/desktop/desktop_layout.dart';
+import 'package:mangabaka_app/desktop/widgets/desktop_list_controls.dart';
 
 class BrowseResultsScreen extends StatefulWidget {
   final String sortType;
@@ -21,6 +23,9 @@ class BrowseResultsScreen extends StatefulWidget {
   final String? type;
   final String? staff;
   final String? publisher;
+
+  /// A tag id to restrict results to (e.g. a "Top in {genre}" rail's genre).
+  final String? tag;
   final double? randomSeed;
 
   const BrowseResultsScreen({
@@ -29,6 +34,7 @@ class BrowseResultsScreen extends StatefulWidget {
     this.type,
     this.staff,
     this.publisher,
+    this.tag,
     this.randomSeed,
     super.key,
   });
@@ -173,6 +179,9 @@ class _BrowseResultsScreenState extends State<BrowseResultsScreen> {
     if (widget.publisher != null) {
       params['publisher'] = widget.publisher;
     }
+    if (widget.tag != null) {
+      params['tag'] = widget.tag;
+    }
 
     if (excludeUserId != null && excludeUserId.isNotEmpty) {
       params['exclude_user_library'] = excludeUserId;
@@ -254,6 +263,13 @@ class _BrowseResultsScreenState extends State<BrowseResultsScreen> {
                 fontSize: 17,
               ),
             ),
+            actions: [
+              if (DesktopLayout.isActive(context))
+                Padding(
+                  padding: const EdgeInsets.only(right: 16.0),
+                  child: DesktopListStyleToggle(scope: DesktopListScope.browse),
+                ),
+            ],
           ),
           body: ListenableBuilder(
             listenable: SettingsManager(),

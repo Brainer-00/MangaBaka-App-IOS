@@ -137,6 +137,18 @@ class FilterChipsRow extends StatelessWidget {
           );
         }
 
+        // Anime adaptation
+        if (filters.hasAnime != null) {
+          chips.add(
+            _buildChip(
+              '${l10n.translate('has_anime')}: ${filters.hasAnime! ? l10n.translate('yes') : l10n.translate('no')}',
+              () {
+                onFiltersChanged(filters.copyWithHasAnime(null));
+              },
+            ),
+          );
+        }
+
         // Year
         if (filters.publishedYearLower != null ||
             filters.publishedYearUpper != null) {

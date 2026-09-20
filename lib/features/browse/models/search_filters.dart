@@ -15,6 +15,9 @@ class SearchFilters {
   final int? publishedYearLower;
   final int? publishedYearUpper;
   final bool? isLicensed;
+
+  /// Restrict to series with (true) or without (false) an anime adaptation.
+  final bool? hasAnime;
   final String tagMode;
 
   bool get isEmpty =>
@@ -34,6 +37,7 @@ class SearchFilters {
       publishedYearLower == null &&
       publishedYearUpper == null &&
       isLicensed == null &&
+      hasAnime == null &&
       tagMode == 'and';
 
   int get activeFiltersCount {
@@ -52,6 +56,7 @@ class SearchFilters {
     if (ratingLower > 0 || ratingUpper < 100) count++;
     if (publishedYearLower != null || publishedYearUpper != null) count++;
     if (isLicensed != null) count++;
+    if (hasAnime != null) count++;
     return count;
   }
 
@@ -72,6 +77,7 @@ class SearchFilters {
     this.publishedYearLower,
     this.publishedYearUpper,
     this.isLicensed,
+    this.hasAnime,
     this.tagMode = 'and',
   });
 
@@ -92,6 +98,7 @@ class SearchFilters {
     int? publishedYearLower,
     int? publishedYearUpper,
     bool? isLicensed,
+    bool? hasAnime,
     String? tagMode,
   }) {
     return SearchFilters(
@@ -113,6 +120,7 @@ class SearchFilters {
       isLicensed: isLicensed != null
           ? (isLicensed ? true : (this.isLicensed == false ? false : null))
           : this.isLicensed,
+      hasAnime: hasAnime ?? this.hasAnime,
       tagMode: tagMode ?? this.tagMode,
     );
   }
@@ -135,6 +143,7 @@ class SearchFilters {
         publishedYearLower: publishedYearLower,
         publishedYearUpper: publishedYearUpper,
         isLicensed: isLicensed,
+        hasAnime: hasAnime,
         tagMode: tagMode,
       );
 
@@ -157,6 +166,7 @@ class SearchFilters {
         publishedYearLower: publishedYearLower,
         publishedYearUpper: publishedYearUpper,
         isLicensed: isLicensed,
+        hasAnime: hasAnime,
         tagMode: tagMode,
       );
 
@@ -178,6 +188,29 @@ class SearchFilters {
         publishedYearLower: publishedYearLower,
         publishedYearUpper: publishedYearUpper,
         isLicensed: isLicensed,
+        hasAnime: hasAnime,
+        tagMode: tagMode,
+      );
+
+  /// Convenience wrapper - sets or clears [hasAnime] without touching other fields.
+  SearchFilters copyWithHasAnime(bool? hasAnime) => SearchFilters(
+        type: type,
+        typeNot: typeNot,
+        status: status,
+        statusNot: statusNot,
+        genre: genre,
+        genreNot: genreNot,
+        tag: tag,
+        tagNot: tagNot,
+        staff: staff,
+        publisher: publisher,
+        sortBy: sortBy,
+        ratingLower: ratingLower,
+        ratingUpper: ratingUpper,
+        publishedYearLower: publishedYearLower,
+        publishedYearUpper: publishedYearUpper,
+        isLicensed: isLicensed,
+        hasAnime: hasAnime,
         tagMode: tagMode,
       );
 
@@ -213,6 +246,7 @@ class SearchFilters {
     }
 
     if (isLicensed != null) map['is_licensed'] = isLicensed;
+    if (hasAnime != null) map['has_anime'] = hasAnime;
     if (tagMode != 'and') map['tag_mode'] = tagMode;
 
     return map;

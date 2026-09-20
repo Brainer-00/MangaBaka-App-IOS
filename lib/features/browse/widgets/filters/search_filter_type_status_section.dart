@@ -71,7 +71,6 @@ class SearchFilterTypeStatusSection extends StatelessWidget {
                   ? l10n.translate('any')
                   : '${filters.type.length} ${l10n.translate('included')}, ${filters.typeNot.length} ${l10n.translate('excluded')}',
               isFirst: true,
-              iconColor: const Color(0xFF4FBEC4),
               onTap: () => _showFilterDialog(
                 context,
                 title: l10n.translate('type'),
@@ -94,7 +93,6 @@ class SearchFilterTypeStatusSection extends StatelessWidget {
                   ? l10n.translate('any')
                   : '${filters.status.length} ${l10n.translate('included')}, ${filters.statusNot.length} ${l10n.translate('excluded')}',
               isLast: true,
-              iconColor: AppConstants.starColor,
               onTap: () => _showFilterDialog(
                 context,
                 title: l10n.translate('status'),

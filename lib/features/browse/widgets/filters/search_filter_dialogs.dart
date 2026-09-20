@@ -21,6 +21,22 @@ class SearchFilterDialogs {
     );
   }
 
+  static void showHasAnimeDialog({
+    required BuildContext context,
+    required LocalizationService l10n,
+    required SearchFilters currentFilters,
+    required ValueChanged<bool?> onStatusSelected,
+  }) {
+    LicensedStatusDialog.show(
+      context: context,
+      l10n: l10n,
+      currentFilters: currentFilters,
+      onStatusSelected: onStatusSelected,
+      titleKey: 'has_anime',
+      selected: (f) => f.hasAnime,
+    );
+  }
+
   static void showLicensedStatusDialog({
     required BuildContext context,
     required LocalizationService l10n,

@@ -10,7 +10,10 @@ class LicensedStatusDialog {
     required LocalizationService l10n,
     required SearchFilters currentFilters,
     required ValueChanged<bool?> onStatusSelected,
+    String titleKey = 'licensed_status',
+    bool? Function(SearchFilters filters)? selected,
   }) {
+    final current = (selected ?? (f) => f.isLicensed)(currentFilters);
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -28,7 +31,7 @@ class LicensedStatusDialog {
               _buildHeader(),
               const SizedBox(height: 24),
               Text(
-                l10n.translate('licensed_status').toUpperCase(),
+                l10n.translate(titleKey).toUpperCase(),
                 style: AppTypography.display(
                   color: AppConstants.textColor,
                   fontSize: 18,
@@ -37,7 +40,7 @@ class LicensedStatusDialog {
               const SizedBox(height: 24),
               _SelectionTile(
                 label: l10n.translate('any'),
-                isSelected: currentFilters.isLicensed == null,
+                isSelected: current == null,
                 onTap: () {
                   onStatusSelected(null);
                   Navigator.pop(dialogContext);
@@ -45,7 +48,7 @@ class LicensedStatusDialog {
               ),
               _SelectionTile(
                 label: l10n.translate('yes'),
-                isSelected: currentFilters.isLicensed == true,
+                isSelected: current == true,
                 onTap: () {
                   onStatusSelected(true);
                   Navigator.pop(dialogContext);
@@ -53,7 +56,7 @@ class LicensedStatusDialog {
               ),
               _SelectionTile(
                 label: l10n.translate('no'),
-                isSelected: currentFilters.isLicensed == false,
+                isSelected: current == false,
                 onTap: () {
                   onStatusSelected(false);
                   Navigator.pop(dialogContext);

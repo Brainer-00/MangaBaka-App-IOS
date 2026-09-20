@@ -38,12 +38,28 @@ class SearchFilterDetailsSection extends StatelessWidget {
                       ? l10n.translate('yes')
                       : l10n.translate('no')),
               isFirst: true,
-              iconColor: AppConstants.accentColor,
               onTap: () => SearchFilterDialogs.showLicensedStatusDialog(
                 context: context,
                 l10n: l10n,
                 currentFilters: filters,
                 onStatusSelected: (val) => onFiltersChanged(filters.copyWithIsLicensed(val)),
+              ),
+            ),
+            const SettingsDivider(),
+            SettingsItem(
+              icon: Icons.live_tv_outlined,
+              title: l10n.translate('has_anime'),
+              subtitle: filters.hasAnime == null
+                  ? l10n.translate('any')
+                  : (filters.hasAnime == true
+                      ? l10n.translate('yes')
+                      : l10n.translate('no')),
+              onTap: () => SearchFilterDialogs.showHasAnimeDialog(
+                context: context,
+                l10n: l10n,
+                currentFilters: filters,
+                onStatusSelected: (val) =>
+                    onFiltersChanged(filters.copyWithHasAnime(val)),
               ),
             ),
             const SettingsDivider(),

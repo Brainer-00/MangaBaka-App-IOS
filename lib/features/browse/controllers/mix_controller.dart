@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mangabaka_app/core/utils/content_rating_filter.dart';
 import 'package:mangabaka_app/features/browse/models/mix_result.dart';
 import 'package:mangabaka_app/features/browse/services/mix_service.dart';
 import 'package:mangabaka_app/features/series/models/autocomplete_series_result.dart';
@@ -143,7 +144,8 @@ class MixController extends ChangeNotifier {
       final result = await _mixService.fetchMix(
         seriesIds: ids,
         limit: 24,
-        contentRating: contentPrefs.isNotEmpty ? contentPrefs : null,
+        // The deny-list form: what the user has chosen not to see.
+        notContentRating: ContentRatingFilter.excluded(contentPrefs),
         strict: _strictMode,
         blendUserId: (_blendUser && userId.isNotEmpty) ? userId : null,
         excludeUserLibrary: (_excludeLibrary && userId.isNotEmpty) ? userId : null,
