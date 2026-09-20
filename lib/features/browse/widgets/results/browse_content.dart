@@ -15,6 +15,7 @@ import 'package:mangabaka_app/core/widgets/dynamic_row_height_grid.dart';
 import 'package:mangabaka_app/features/browse/models/browse_type.dart';
 import 'package:mangabaka_app/features/publisher/models/publisher.dart';
 import 'package:mangabaka_app/features/publisher/widgets/publisher_list_item.dart';
+import 'package:mangabaka_app/features/collections/screens/collections_browse_screen.dart';
 import 'package:mangabaka_app/features/staff/models/staff.dart';
 import 'package:mangabaka_app/features/staff/widgets/staff_list_item.dart';
 
@@ -86,15 +87,16 @@ class BrowseContent extends StatelessWidget {
   }
 
   /// Builds a single tappable series item with hover-prefetch for desktop.
-  Widget _buildSeriesItem(Series series, {required bool isGrid}) {
+  Widget _buildSeriesItem(Series series, {required AppListStyle activeStyle}) {
     final seriesService = getIt<SeriesService>();
     return MouseRegion(
       onEnter: (_) => seriesService.fetchSeries(series.id),
       child: InkWell(
         onTap: () => onNavigateToDetail(series),
         child: EntryListItem(
-          key: ValueKey('${isGrid ? 'grid' : 'list'}_${series.id}'),
+          key: ValueKey('${activeStyle.name}_${series.id}'),
           series: series,
+          listStyle: activeStyle,
         ),
       ),
     );
@@ -125,7 +127,7 @@ class BrowseContent extends StatelessWidget {
                   if (index == searchResults.length) {
                     return const Center(child: CircularProgressIndicator());
                   }
-                  return _buildSeriesItem(searchResults[index] as Series, isGrid: true);
+                  return _buildSeriesItem(searchResults[index] as Series, activeStyle: activeStyle);
                 },
               );
             }
@@ -144,7 +146,7 @@ class BrowseContent extends StatelessWidget {
                 if (index == searchResults.length) {
                   return const Center(child: CircularProgressIndicator());
                 }
-                return _buildSeriesItem(searchResults[index] as Series, isGrid: true);
+                return _buildSeriesItem(searchResults[index] as Series, activeStyle: activeStyle);
               },
             );
           }
@@ -168,7 +170,7 @@ class BrowseContent extends StatelessWidget {
                 child: Center(child: CircularProgressIndicator()),
               );
             }
-            return _buildSeriesItem(searchResults[index] as Series, isGrid: false);
+            return _buildSeriesItem(searchResults[index] as Series, activeStyle: activeStyle);
           },
         );
       },
@@ -190,10 +192,9 @@ class BrowseContent extends StatelessWidget {
         final publisher = searchResults[index] as Publisher;
         return PublisherListItem(
           publisher: publisher,
-          onTap: () => onNavigateToResults(
-            publisher.name,
-            'name_asc',
-            publisher: publisher.name,
+          onTap: () => CollectionsBrowseScreen.open(
+            context,
+            publisher: publisher,
           ),
         );
       },
@@ -248,6 +249,45 @@ class BrowseContent extends StatelessWidget {
               onMix: onNavigateToMix,
             );
 
+          } else if (browseType == BrowseType.publishers) {
+            content = Center(
+              key: const ValueKey('publishers_prompt'),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.business_rounded,
+                    size: 64,
+                    color: AppConstants.textMutedColor,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    l10n.translate('search_publishers_hint'),
+                    style: AppTypography.sans(
+                      color: AppConstants.textMutedColor,
+                      fontSize: 16,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  OutlinedButton.icon(
+                    icon: const Icon(Icons.collections_bookmark_rounded, size: 18),
+                    label: Text(l10n.translate('collections_and_editions')),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppConstants.accentColor,
+                      side: BorderSide(color: AppConstants.borderColor),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 10,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    onPressed: () => CollectionsBrowseScreen.open(context),
+                  ),
+                ],
+              ),
+            );
           } else {
             content = Center(
               key: const ValueKey('search_prompt'),

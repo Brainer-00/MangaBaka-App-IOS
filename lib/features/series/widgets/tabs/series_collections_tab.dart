@@ -1,4 +1,3 @@
-﻿import 'package:mangabaka_app/core/theme/app_typography.dart';
 import 'package:flutter/material.dart';
 import 'package:mangabaka_app/core/constants/app_constants.dart';
 import 'package:mangabaka_app/features/series/models/series_collection.dart';
@@ -6,6 +5,9 @@ import 'package:mangabaka_app/features/series/widgets/series_section_header.dart
 import 'package:mangabaka_app/core/localization/localization_service.dart';
 import 'package:mangabaka_app/core/settings/settings_manager.dart';
 import 'package:mangabaka_app/core/utils/widget_utils.dart';
+import 'package:mangabaka_app/features/collections/screens/collection_detail_screen.dart';
+import 'package:mangabaka_app/features/collections/widgets/collection_card.dart';
+import 'package:mangabaka_app/shared/transitions/app_transitions.dart';
 
 class SeriesCollectionsTab extends StatelessWidget {
   final List<SeriesCollection>? collections;
@@ -69,7 +71,14 @@ class SeriesCollectionsTab extends StatelessWidget {
                     runSpacing: spacing,
                     children: collections!.map((col) => SizedBox(
                       width: itemWidth,
-                      child: _buildCollectionItem(col),
+                      child: CollectionCard(
+                        collection: col,
+                        onTap: () => Navigator.of(context).push(
+                          AppTransitions.slideRight(
+                            CollectionDetailScreen(collection: col),
+                          ),
+                        ),
+                      ),
                     )).toList(),
                   );
                 },
@@ -97,78 +106,6 @@ class SeriesCollectionsTab extends StatelessWidget {
         onPressed: () {
           settings.setCollectionsListColumns(activeColumns == 1 ? 2 : 1);
         },
-      ),
-    );
-  }
-
-  Widget _buildCollectionItem(SeriesCollection col) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppConstants.secondaryBackground,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      col.title,
-                      style: AppTypography.sans(color: AppConstants.textColor, fontWeight: FontWeight.bold, fontSize: 16),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '${col.publisherName} | ${col.editionName}',
-                      style: AppTypography.sans(color: AppConstants.textMutedColor, fontSize: 13),
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: AppConstants.accentColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  '${col.countMain} Vols',
-                  style: AppTypography.sans(color: AppConstants.accentColor, fontWeight: FontWeight.bold, fontSize: 12),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              _buildMiniBadge(col.format),
-              _buildMiniBadge(col.medium),
-              _buildMiniBadge(col.status),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMiniBadge(String text) {
-    if (text.isEmpty) return const SizedBox.shrink();
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: AppConstants.tertiaryBackground,
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: Text(
-        text.toUpperCase(),
-        style: AppTypography.sans(color: AppConstants.textMutedColor, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 0.5),
       ),
     );
   }

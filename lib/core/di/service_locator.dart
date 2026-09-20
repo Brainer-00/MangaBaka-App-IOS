@@ -1,4 +1,5 @@
 import 'package:get_it/get_it.dart';
+import 'package:mangabaka_app/features/collections/services/collection_service.dart';
 import 'package:mangabaka_app/core/database/database.dart';
 import 'package:mangabaka_app/features/series/services/series_search_service.dart';
 import 'package:mangabaka_app/features/series/services/series_service.dart';
@@ -44,6 +45,7 @@ void setupServiceLocator() {
 
   getIt.registerLazySingleton<NewsService>(() => NewsService());
   getIt.registerLazySingleton<PublisherSearchService>(() => PublisherSearchService());
+  getIt.registerLazySingleton<CollectionService>(() => CollectionService());
   getIt.registerLazySingleton<MixService>(() => MixService());
   getIt.registerLazySingleton<BookLookupService>(() => BookLookupService());
 

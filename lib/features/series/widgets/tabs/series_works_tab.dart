@@ -11,11 +11,13 @@ import 'package:mangabaka_app/core/settings/settings_enums.dart';
 class SeriesWorksTab extends StatelessWidget {
   final List<SeriesWork>? works;
   final double horizontalPadding;
+  final String? fallbackCoverUrl;
 
   const SeriesWorksTab({
     super.key, 
     this.works,
     this.horizontalPadding = 16.0,
+    this.fallbackCoverUrl,
   });
 
   @override
@@ -124,7 +126,9 @@ class SeriesWorksTab extends StatelessWidget {
             child: ClipRRect(
               borderRadius: BorderRadius.circular(8),
               child: WidgetUtils.networkImage(
-                url: w.imageUrl ?? '',
+                url: (w.imageUrl != null && w.imageUrl!.isNotEmpty)
+                    ? w.imageUrl!
+                    : (fallbackCoverUrl ?? ''),
                 fit: BoxFit.cover,
                 memCacheWidth: 150,
               ),
@@ -196,7 +200,9 @@ class SeriesWorksTab extends StatelessWidget {
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(12),
                 child: WidgetUtils.networkImage(
-                  url: w.imageUrl ?? '',
+                  url: (w.imageUrl != null && w.imageUrl!.isNotEmpty)
+                      ? w.imageUrl!
+                      : (fallbackCoverUrl ?? ''),
                   fit: BoxFit.cover,
                   memCacheWidth: 300,
                 ),

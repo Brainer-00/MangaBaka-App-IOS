@@ -61,8 +61,19 @@ class BrowseResultsList extends StatelessWidget {
                       onTap: () => onSeriesTap(series),
                       pressedScale: 0.98,
                       child: shouldShowRanking
-                          ? EntryListItem(series: series, ranking: index + 1, heroTagPrefix: heroTagPrefix)
-                          : EntryListItem(series: series, heroTagPrefix: heroTagPrefix),
+                          ? EntryListItem(
+                              key: ValueKey('${activeStyle.name}_${series.id}'),
+                              series: series,
+                              ranking: index + 1,
+                              heroTagPrefix: heroTagPrefix,
+                              listStyle: activeStyle,
+                            )
+                          : EntryListItem(
+                              key: ValueKey('${activeStyle.name}_${series.id}'),
+                              series: series,
+                              heroTagPrefix: heroTagPrefix,
+                              listStyle: activeStyle,
+                            ),
                     ),
                   );
                 },
@@ -98,8 +109,19 @@ class BrowseResultsList extends StatelessWidget {
                     onTap: () => onSeriesTap(series),
                     pressedScale: 0.98,
                     child: shouldShowRanking
-                        ? EntryListItem(series: series, ranking: index + 1, heroTagPrefix: heroTagPrefix)
-                        : EntryListItem(series: series, heroTagPrefix: heroTagPrefix),
+                        ? EntryListItem(
+                            key: ValueKey('${activeStyle.name}_${series.id}'),
+                            series: series,
+                            ranking: index + 1,
+                            heroTagPrefix: heroTagPrefix,
+                            listStyle: activeStyle,
+                          )
+                        : EntryListItem(
+                            key: ValueKey('${activeStyle.name}_${series.id}'),
+                            series: series,
+                            heroTagPrefix: heroTagPrefix,
+                            listStyle: activeStyle,
+                          ),
                   ),
                 );
               },
@@ -142,8 +164,19 @@ class BrowseResultsList extends StatelessWidget {
             return InkWell(
               onTap: () => onSeriesTap(series),
               child: shouldShowRanking
-                  ? EntryListItem(series: series, ranking: index + 1, heroTagPrefix: heroTagPrefix)
-                  : EntryListItem(series: series, heroTagPrefix: heroTagPrefix),
+                  ? EntryListItem(
+                      key: ValueKey('${activeStyle.name}_${series.id}'),
+                      series: series,
+                      ranking: index + 1,
+                      heroTagPrefix: heroTagPrefix,
+                      listStyle: activeStyle,
+                    )
+                  : EntryListItem(
+                      key: ValueKey('${activeStyle.name}_${series.id}'),
+                      series: series,
+                      heroTagPrefix: heroTagPrefix,
+                      listStyle: activeStyle,
+                    ),
             );
           },
         );

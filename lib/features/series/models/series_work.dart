@@ -1,5 +1,7 @@
 class SeriesWork {
   final String id;
+  final int? seriesId;
+  final String? seriesTitle;
   final String subTitle;
   final String countType;
   final String releaseDate;
@@ -10,6 +12,8 @@ class SeriesWork {
 
   SeriesWork({
     required this.id,
+    this.seriesId,
+    this.seriesTitle,
     required this.subTitle,
     required this.countType,
     required this.releaseDate,
@@ -34,8 +38,19 @@ class SeriesWork {
       price = '${p['value']} ${p['iso_code']?.toString().toUpperCase()}';
     }
 
+    String? seriesTitle;
+    final collections = json['collections'] as List?;
+    if (collections != null && collections.isNotEmpty) {
+      seriesTitle = collections[0]['title']?.toString();
+    }
+
+    final sid = json['series_id'];
+    final int? seriesId = sid is num ? sid.toInt() : (sid is String ? int.tryParse(sid) : null);
+
     return SeriesWork(
       id: json['id']?.toString() ?? '',
+      seriesId: seriesId,
+      seriesTitle: seriesTitle,
       subTitle: json['sub_title']?.toString() ?? '',
       countType: json['count_type']?.toString() ?? '',
       releaseDate: json['release_date']?.toString() ?? '',
