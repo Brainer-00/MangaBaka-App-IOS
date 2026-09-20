@@ -16,10 +16,10 @@ void main() {
 
   group('AuthNetworkClient.fetchProfile', () {
     test('parses /userinfo response on 200', () async {
-      Uri? captured;
+      final calls = <String>[];
       Map<String, String>? capturedHeaders;
       final mockClient = MockClient((req) async {
-        captured = req.url;
+        calls.add(req.url.path);
         capturedHeaders = req.headers;
         return http.Response(
           jsonEncode({
@@ -42,7 +42,7 @@ void main() {
       expect(profile.nickname, 'Oazzie');
       expect(profile.scopes, ['openid', 'profile']);
 
-      expect(captured!.path, endsWith('/userinfo'));
+      expect(calls.any((p) => p.endsWith('/userinfo')), isTrue);
       expect(capturedHeaders!['Authorization'], 'Bearer access-tok');
     });
 
@@ -87,6 +87,41 @@ void main() {
         ),
         throwsA(isA<AuthException>()),
       );
+    });
+
+    test('merges /userinfo and /my/profile with avatar', () async {
+      final mockClient = MockClient((req) async {
+        if (req.url.path.endsWith('/userinfo')) {
+          return http.Response(
+            jsonEncode({
+              'sub': 'oidc-user',
+              'preferred_username': 'oidc_user',
+              'scope': 'openid profile',
+            }),
+            200,
+          );
+        }
+        return http.Response(
+          jsonEncode({
+            'data': {
+              'id': 'oidc-user',
+              'username': 'oidc_user',
+              'avatar': 'https://mangabaka.org/avatars/user.png',
+            },
+          }),
+          200,
+        );
+      });
+
+      final profile = await http.runWithClient(
+        () => AuthNetworkClient().fetchProfile('tok'),
+        () => mockClient,
+      );
+
+      expect(profile.id, 'oidc-user');
+      expect(profile.preferredUsername, 'oidc_user');
+      expect(profile.avatarUrl, 'https://mangabaka.org/avatars/user.png');
+      expect(profile.scopes, ['openid', 'profile']);
     });
 
     test('throws AuthException when network fails', () async {

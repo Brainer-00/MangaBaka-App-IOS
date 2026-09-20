@@ -22,7 +22,10 @@ class MBLoginPrompt extends StatelessWidget {
           Text(
             message,
             textAlign: TextAlign.center,
-            style: AppTypography.sans(fontSize: 18, color: AppConstants.textColor),
+            style: AppTypography.sans(
+              fontSize: 18,
+              color: AppConstants.textColor,
+            ),
           ),
           const SizedBox(height: 20),
           MBLoginButton(onPressed: onLogin),

@@ -29,12 +29,14 @@ class AuthStorage {
     try {
       final value = await _storage.read(key: key);
       if (value != null) return value;
-      
+
       // Check fallback
       final prefs = await SharedPreferences.getInstance();
       return prefs.getString(key);
     } on PlatformException catch (e) {
-      _logger.warning('Secure storage read error for key $key: $e. Checking fallback.');
+      _logger.warning(
+        'Secure storage read error for key $key: $e. Checking fallback.',
+      );
       final prefs = await SharedPreferences.getInstance();
       return prefs.getString(key);
     }
@@ -44,7 +46,9 @@ class AuthStorage {
     try {
       await _storage.write(key: key, value: value);
     } on PlatformException catch (e) {
-      _logger.warning('Secure storage write error for key $key: $e. Falling back to SharedPreferences.');
+      _logger.warning(
+        'Secure storage write error for key $key: $e. Falling back to SharedPreferences.',
+      );
       // Fallback for macOS development without signing
       final prefs = await SharedPreferences.getInstance();
       if (value == null) {

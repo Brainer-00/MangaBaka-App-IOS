@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mangabaka_app/features/profile/models/mb_profile.dart';
@@ -9,6 +10,8 @@ import 'package:mangabaka_app/features/profile/services/profile_auth_service.dar
 class MockProfileAuthService extends Fake implements ProfileAuthService {
   @override
   bool get isLoggedIn => false;
+  @override
+  final ValueNotifier<bool> awaitingBrowser = ValueNotifier(false);
   @override
   MbProfile? get cachedProfile => null;
   @override

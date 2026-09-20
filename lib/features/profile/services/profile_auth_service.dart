@@ -26,6 +26,17 @@ class ProfileAuthService extends ChangeNotifier {
   MbProfile? _cachedProfile;
   bool _hasSessionCache = false;
 
+  /// True while a desktop sign-in is waiting on the user in their browser.
+  ///
+  /// Drives the "check your browser" prompt. Only the Windows flow can be
+  /// stranded this way; on mobile the system's auth sheet reports its own
+  /// dismissal.
+  final ValueNotifier<bool> awaitingBrowser = ValueNotifier(false);
+
+  void cancelLogin() => WindowsAuthHandler.cancelPending();
+
+  Future<void> reopenBrowser() => WindowsAuthHandler.reopenBrowser();
+
   bool get isLoggedIn => _hasSessionCache;
   MbProfile? get cachedProfile => _cachedProfile;
 
@@ -47,8 +58,17 @@ class ProfileAuthService extends ChangeNotifier {
         _logger.info('Found active session in storage');
         _cachedProfile = await _storage.getCachedProfile();
         if (_cachedProfile != null) {
-          _logger.fine('Loaded cached profile for: ${_cachedProfile!.preferredUsername ?? _cachedProfile!.id}');
+          _logger.fine(
+            'Loaded cached profile for: ${_cachedProfile!.preferredUsername ?? _cachedProfile!.id}',
+          );
         }
+        // Background refresh profile so avatar and details are up-to-date
+        fetchProfile(forceRefresh: true).then(
+          (_) {},
+          onError: (e) {
+            _logger.fine('Background profile refresh on init failed: $e');
+          },
+        );
       } else {
         _logger.fine('No active session found');
       }
@@ -68,7 +88,8 @@ class ProfileAuthService extends ChangeNotifier {
       if (_clientId.isEmpty || _redirectUri.isEmpty) {
         _logger.severe('OAuth configuration missing from .env');
         throw AuthException(
-          message: 'Missing MANGABAKA_APP_CLIENT_ID or MANGABAKA_APP_REDIRECT_URI in .env',
+          message:
+              'Missing MANGABAKA_APP_CLIENT_ID or MANGABAKA_APP_REDIRECT_URI in .env',
           code: 'MISSING_CONFIG',
         );
       }
@@ -82,6 +103,7 @@ class ProfileAuthService extends ChangeNotifier {
           authorizationEndpoint: _authorizationEndpoint,
           tokenEndpoint: _tokenEndpoint,
           scopes: AppConstants.oauthScopes,
+          onBrowserOpened: () => awaitingBrowser.value = true,
         );
       } else {
         response = await _appAuth.authorizeAndExchangeCode(
@@ -96,28 +118,44 @@ class ProfileAuthService extends ChangeNotifier {
       }
 
       if (response == null) {
-        throw AuthException(message: 'Login failed: No response from auth server');
+        throw AuthException(
+          message: 'Login failed: No response from auth server',
+        );
       }
 
       _logger.info('OAuth2 authorization successful. Persisting tokens...');
       await _persistTokens(response);
       _hasSessionCache = true;
       await fetchProfile(forceRefresh: true);
-      _logger.info('Login complete for: ${_cachedProfile?.preferredUsername ?? _cachedProfile?.id}');
+      _logger.info(
+        'Login complete for: ${_cachedProfile?.preferredUsername ?? _cachedProfile?.id}',
+      );
       notifyListeners();
     } catch (e, st) {
+      if (e is AuthCancelledException) {
+        _logger.info('Login cancelled by user');
+        rethrow;
+      }
       if (e is PlatformException &&
           (e.code == 'authorize_and_exchange_code_failed' ||
               e.code == 'user_cancelled')) {
         final msg = e.message?.toLowerCase() ?? '';
-        if (msg.contains('cancelled') || msg.contains('canceled') || msg.contains('user')) {
+        if (msg.contains('cancelled') ||
+            msg.contains('canceled') ||
+            msg.contains('user')) {
           _logger.info('Login cancelled by user');
           throw AuthCancelledException();
         }
       }
       _logger.severe('Login flow failed', e, st);
       if (e is AppException) rethrow;
-      throw AuthException(message: 'Login failed', originalError: e, stackTrace: st);
+      throw AuthException(
+        message: 'Login failed',
+        originalError: e,
+        stackTrace: st,
+      );
+    } finally {
+      awaitingBrowser.value = false;
     }
   }
 
@@ -126,14 +164,20 @@ class ProfileAuthService extends ChangeNotifier {
       await _storage.write(AuthStorage.kAccessToken, response.accessToken);
       await _storage.write(AuthStorage.kRefreshToken, response.refreshToken);
       await _storage.write(AuthStorage.kIdToken, response.idToken);
-      final exp = response.accessTokenExpirationDateTime?.toUtc().toIso8601String();
+      final exp = response.accessTokenExpirationDateTime
+          ?.toUtc()
+          .toIso8601String();
       if (exp != null) {
         _logger.fine('Token expiration set to: $exp');
         await _storage.write(AuthStorage.kAccessTokenExp, exp);
       }
     } catch (e, st) {
       _logger.severe('Failed to persist tokens', e, st);
-      throw AuthException(message: 'Failed to persist tokens', originalError: e, stackTrace: st);
+      throw AuthException(
+        message: 'Failed to persist tokens',
+        originalError: e,
+        stackTrace: st,
+      );
     }
   }
 
@@ -144,8 +188,9 @@ class ProfileAuthService extends ChangeNotifier {
   Future<void>? _refreshInFlight;
 
   Future<void> _refreshIfNeeded() {
-    return _refreshInFlight ??=
-        _runRefresh().whenComplete(() => _refreshInFlight = null);
+    return _refreshInFlight ??= _runRefresh().whenComplete(
+      () => _refreshInFlight = null,
+    );
   }
 
   Future<void> _runRefresh() async {
@@ -166,7 +211,9 @@ class ProfileAuthService extends ChangeNotifier {
       return;
     }
 
-    _logger.info('Access token expiring soon or already expired. Attempting refresh...');
+    _logger.info(
+      'Access token expiring soon or already expired. Attempting refresh...',
+    );
     final refreshToken = await _storage.read(AuthStorage.kRefreshToken);
     if (refreshToken == null || refreshToken.isEmpty) {
       _logger.warning('No refresh token available to perform refresh');
@@ -204,11 +251,17 @@ class ProfileAuthService extends ChangeNotifier {
         await _clearSession();
         throw SessionExpiredException(originalError: e, stackTrace: st);
       }
-      throw AuthException(message: 'Failed to refresh tokens', originalError: e, stackTrace: st);
+      throw AuthException(
+        message: 'Failed to refresh tokens',
+        originalError: e,
+        stackTrace: st,
+      );
     }
 
     if (response == null) {
-      throw AuthException(message: 'Token refresh failed: No response from auth server');
+      throw AuthException(
+        message: 'Token refresh failed: No response from auth server',
+      );
     }
 
     _logger.info('Token refresh successful');
@@ -223,8 +276,8 @@ class ProfileAuthService extends ChangeNotifier {
       return e.statusCode == 400 || e.statusCode == 401;
     }
     if (e is PlatformException) {
-      final blob =
-          '${e.code} ${e.message ?? ''} ${e.details ?? ''}'.toLowerCase();
+      final blob = '${e.code} ${e.message ?? ''} ${e.details ?? ''}'
+          .toLowerCase();
       return blob.contains('invalid_grant') ||
           blob.contains('invalid_token') ||
           blob.contains(' 400') ||
@@ -263,11 +316,16 @@ class ProfileAuthService extends ChangeNotifier {
 
       _cachedProfile = await _network.fetchProfile(accessToken);
       await _storage.cacheProfile(_cachedProfile!);
+      notifyListeners();
       return _cachedProfile!;
     } catch (e, st) {
       _logger.severe('Failed to fetch profile', e, st);
       if (e is AppException) rethrow;
-      throw AuthException(message: 'Failed to fetch profile', originalError: e, stackTrace: st);
+      throw AuthException(
+        message: 'Failed to fetch profile',
+        originalError: e,
+        stackTrace: st,
+      );
     }
   }
 
@@ -282,7 +340,11 @@ class ProfileAuthService extends ChangeNotifier {
     } catch (e, st) {
       _logger.severe('Failed to get valid access token', e, st);
       if (e is AppException) rethrow;
-      throw AuthException(message: 'Failed to get valid access token', originalError: e, stackTrace: st);
+      throw AuthException(
+        message: 'Failed to get valid access token',
+        originalError: e,
+        stackTrace: st,
+      );
     }
   }
 
@@ -301,7 +363,11 @@ class ProfileAuthService extends ChangeNotifier {
       notifyListeners();
     } catch (e, st) {
       _logger.severe('Failed to logout', e, st);
-      throw AuthException(message: 'Failed to logout', originalError: e, stackTrace: st);
+      throw AuthException(
+        message: 'Failed to logout',
+        originalError: e,
+        stackTrace: st,
+      );
     }
   }
 }
