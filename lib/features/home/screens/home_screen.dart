@@ -36,6 +36,7 @@ class _HomeScreenState extends State<HomeScreen> {
   List<Series> _rising = const [];
   List<Series> _hiddenGems = const [];
   List<Series> _newReleases = const [];
+  List<TopGenreRail> _genreRails = const [];
 
   /// API `type` filter for the Trending rail; null means every type.
   String? _trendingType;
@@ -68,7 +69,6 @@ class _HomeScreenState extends State<HomeScreen> {
     _loadRails();
   }
 
-
   Future<void> _loadRails() async {
     if (mounted) {
       setState(() {
@@ -91,15 +91,17 @@ class _HomeScreenState extends State<HomeScreen> {
       _homeService.fetchRising(),
       _homeService.fetchHiddenGems(),
       _homeService.fetchNewReleases(),
+      _homeService.fetchTopGenreRails(),
     ]);
 
     if (!mounted) return;
     setState(() {
-      _forYou = results[0];
-      _trending = results[1];
-      _rising = results[2];
-      _hiddenGems = results[3];
-      _newReleases = results[4];
+      _forYou = results[0] as List<Series>;
+      _trending = results[1] as List<Series>;
+      _rising = results[2] as List<Series>;
+      _hiddenGems = results[3] as List<Series>;
+      _newReleases = results[4] as List<Series>;
+      _genreRails = results[5] as List<TopGenreRail>;
       _showForYou = wantsForYou;
       _loadingRails = false;
       _loadingTrending = false;
@@ -129,6 +131,20 @@ class _HomeScreenState extends State<HomeScreen> {
           sortType: l10n.translate('trending'),
           sortBy: _trendingWindow == 30 ? 'trending_30d' : 'trending_7d',
           type: _trendingType,
+        ),
+      ),
+    );
+  }
+
+  void _openGenreAll(TopGenre genre) {
+    Navigator.of(context).push(
+      AppTransitions.slideRight(
+        BrowseResultsScreen(
+          sortType: LocalizationService()
+              .translate('top_in_genre')
+              .replaceAll('{genre}', genre.name),
+          sortBy: 'score_desc',
+          tag: genre.tagId.toString(),
         ),
       ),
     );
@@ -167,6 +183,14 @@ class _HomeScreenState extends State<HomeScreen> {
                       title: l10n.translate('for_you'),
                       series: _forYou,
                       loading: _loadingRails && _showForYou,
+                    ),
+                  for (final rail in _genreRails)
+                    HomeRail(
+                      title: l10n
+                          .translate('top_in_genre')
+                          .replaceAll('{genre}', rail.genre.name),
+                      series: rail.series,
+                      onViewAll: () => _openGenreAll(rail.genre),
                     ),
                   HomeTrendingSection(
                     series: _trending,

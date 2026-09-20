@@ -5,11 +5,15 @@ import 'package:mangabaka_app/core/logging/logging_service.dart';
 import 'package:mangabaka_app/core/network/api_client.dart';
 import 'package:mangabaka_app/core/network/api_envelope.dart';
 import 'package:mangabaka_app/core/settings/settings_manager.dart';
+import 'package:mangabaka_app/core/utils/content_rating_filter.dart';
 import 'package:mangabaka_app/features/home/models/for_you_readiness.dart';
+import 'package:mangabaka_app/features/home/models/top_genre_rail.dart';
 import 'package:mangabaka_app/features/profile/services/profile_auth_service.dart';
 import 'package:mangabaka_app/features/series/models/series.dart';
+import 'package:mangabaka_app/features/series/models/series_work.dart';
 
 export 'package:mangabaka_app/features/home/models/for_you_readiness.dart';
+export 'package:mangabaka_app/features/home/models/top_genre_rail.dart';
 
 /// Backs the Home feed's discovery rails.
 ///
@@ -30,7 +34,7 @@ class HomeService {
   final ApiClient _api;
 
   HomeService({http.Client? client, ApiClient? api})
-      : _api = api ?? ApiClient(healthContext: 'home', client: client);
+    : _api = api ?? ApiClient(healthContext: 'home', client: client);
 
   /// Content-rating preferences apply to every discovery rail, so an unwanted
   /// rating never reaches the Home screen in the first place.
@@ -39,8 +43,7 @@ class HomeService {
   /// user wants to see), which maps onto the API's `content_rating` filter —
   /// the same mapping `MixController` uses.
   Map<String, dynamic> _contentParams() {
-    final allowed = SettingsManager()
-        .contentPreferences
+    final allowed = SettingsManager().contentPreferences
         .where((p) => p.isNotEmpty)
         .toList(growable: false);
     if (allowed.isEmpty) return const {};
@@ -62,9 +65,15 @@ class HomeService {
   }
 
   /// Highly rated series that comparatively few readers have found.
+  ///
+  /// Sends the deny-list (`not_content_rating`) rather than the allow-list the
+  /// other rails use, which this endpoint accepts.
   Future<List<Series>> fetchHiddenGems({int limit = 20}) {
     return _fetchRail(
-      _v2Uri('/series/discover/hidden-gems', {'limit': limit}),
+      ApiClient.uri('$_v2Base/series/discover/hidden-gems', {
+        'limit': limit,
+        'not_content_rating': ContentRatingFilter.excludedByPreference(),
+      }),
       'hidden gems',
     );
   }
@@ -114,13 +123,76 @@ class HomeService {
     // user id (and is flagged alpha), and recommendations already leave the
     // caller's own library out.
     return _fetchRail(
-      ApiClient.uri(
-        '${AppConstants.baseApiUrl}/my/series/recommendations',
-        {'limit': limit, ..._contentParams()},
-      ),
+      ApiClient.uri('${AppConstants.baseApiUrl}/my/series/recommendations', {
+        'limit': limit,
+        ..._contentParams(),
+      }),
       'for-you',
       headers: headers,
     );
+  }
+
+  /// The user's top genres from their taste profile. Empty when logged out, when
+  /// the profile has nothing yet, or when the (beta) endpoint fails.
+  ///
+  /// Unlike the other endpoints this one answers with `results`, not `data`.
+  Future<List<TopGenre>> fetchTopGenres({int limit = 3}) async {
+    final headers = await _authHeaders();
+    if (headers == null) return const [];
+    try {
+      final genres = await _api
+          .withContext('home:top-genres')
+          .getJson(
+            ApiClient.uri(
+              '${AppConstants.baseApiUrl}/my/series/discover/top-genres',
+              {'limit': limit},
+            ),
+            operation: 'fetch top genres',
+            parse: (json) {
+              final results = json is Map ? json['results'] : null;
+              if (results is! List) return const <TopGenre>[];
+              return results
+                  .map(TopGenre.tryParse)
+                  .whereType<TopGenre>()
+                  .toList(growable: false);
+            },
+            headers: headers,
+          );
+      _logger.info('HomeService top genres: ${genres.map((g) => g.name)}');
+      return genres;
+    } catch (e) {
+      _logger.warning('HomeService failed to fetch top genres: $e');
+      return const [];
+    }
+  }
+
+  /// The best-rated series carrying [tagId] - the content of a "Top in
+  /// {genre}" rail.
+  Future<List<Series>> fetchTopInGenre(int tagId, {int limit = 20}) {
+    return _fetchRail(
+      _v2Uri('/series/search', {
+        'tag': tagId,
+        'sort_by': 'score_desc',
+        // Unrated series sort unpredictably under a score sort.
+        'rating_lower': 1,
+        'limit': limit,
+      }),
+      'top in genre $tagId',
+    );
+  }
+
+  /// "Top in {genre}" rails for the user's top genres, best-fitting first.
+  /// Genres whose rail came back empty are dropped.
+  Future<List<TopGenreRail>> fetchTopGenreRails({int genres = 3}) async {
+    final top = await fetchTopGenres(limit: genres);
+    if (top.isEmpty) return const [];
+    final lists = await Future.wait([
+      for (final g in top) fetchTopInGenre(g.tagId),
+    ]);
+    return [
+      for (var i = 0; i < top.length; i++)
+        if (lists[i].isNotEmpty) TopGenreRail(top[i], lists[i]),
+    ];
   }
 
   /// Cheap probe for whether the taste profile behind "For You" is warm.
@@ -137,9 +209,8 @@ class HomeService {
           '${AppConstants.baseApiUrl}/my/series/recommendations/status',
         ),
         operation: 'probe For-You readiness',
-        parse: (json) => ForYouReadiness.fromJson(
-          (json as Map).cast<String, dynamic>(),
-        ),
+        parse: (json) =>
+            ForYouReadiness.fromJson((json as Map).cast<String, dynamic>()),
         headers: headers,
       );
       _logger.info(
@@ -177,7 +248,9 @@ class HomeService {
     Map<String, String>? headers,
   }) async {
     try {
-      final series = await _api.withContext('home:$label').getJson(
+      final series = await _api
+          .withContext('home:$label')
+          .getJson(
             uri,
             operation: 'fetch $label',
             parse: (json) => parseDataList(json, Series.fromSimilarJson),
@@ -195,6 +268,31 @@ class HomeService {
       '${date.year.toString().padLeft(4, '0')}-'
       '${date.month.toString().padLeft(2, '0')}-'
       '${date.day.toString().padLeft(2, '0')}';
+
+  /// Fetches upcoming work releases.
+  Future<List<SeriesWork>> fetchUpcomingWorks({
+    int page = 1,
+    int perPage = 25,
+  }) async {
+    try {
+      final uri = ApiClient.uri('https://api.mangabaka.org/v1/works/upcoming', {
+        'page': page,
+        'per_page': perPage,
+      });
+      final works = await _api
+          .withContext('home:upcoming')
+          .getJson(
+            uri,
+            operation: 'fetch upcoming works',
+            parse: (json) => parseDataList(json, SeriesWork.fromJson),
+          );
+      _logger.info('HomeService upcoming returned ${works.length} works');
+      return works;
+    } catch (e) {
+      _logger.warning('HomeService failed to fetch upcoming works: $e');
+      return const [];
+    }
+  }
 
   void dispose() => _api.close();
 }

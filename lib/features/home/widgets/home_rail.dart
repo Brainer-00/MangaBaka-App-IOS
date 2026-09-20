@@ -97,11 +97,7 @@ class _RailCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            MbCover(
-              url: series.coverUrl,
-              width: width,
-              memCacheWidth: 300,
-            ),
+            MbCover(url: series.coverUrl, width: width, memCacheWidth: 300),
             const SizedBox(height: 8),
             Text(
               series.title,

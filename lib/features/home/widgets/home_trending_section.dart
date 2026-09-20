@@ -50,10 +50,7 @@ class HomeTrendingSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        MbSectionHeader(
-          title: l10n.translate('trending'),
-          onAction: onViewAll,
-        ),
+        MbSectionHeader(title: l10n.translate('trending'), onAction: onViewAll),
         SizedBox(
           height: 34,
           child: ListView(
