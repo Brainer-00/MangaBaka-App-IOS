@@ -6,7 +6,7 @@ import 'package:mangabaka_app/core/di/service_locator.dart';
 import 'package:mangabaka_app/core/constants/app_constants.dart';
 import 'package:mangabaka_app/core/localization/localization_service.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-
+import 'package:mangabaka_app/desktop/desktop_layout.dart';
 import 'package:mangabaka_app/features/navigation/screens/main_screen.dart';
 
 class SyncProgressOverlay extends StatelessWidget {
@@ -15,6 +15,7 @@ class SyncProgressOverlay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final libraryService = getIt<LibraryService>();
+    final isDesktop = DesktopLayout.isDesktopPlatform;
 
     return ValueListenableBuilder<LibrarySyncStatus>(
       valueListenable: libraryService.syncStatus,
@@ -24,10 +25,19 @@ class SyncProgressOverlay extends StatelessWidget {
         }
 
         return Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+              padding: isDesktop
+                  ? const EdgeInsets.fromLTRB(0, 0, 28, 28)
+                  : const EdgeInsets.fromLTRB(16, 0, 16, 24),
               child: Align(
-                alignment: Alignment.bottomCenter,
-                child: _buildCard(context, libraryService, status),
+                alignment: isDesktop
+                    ? Alignment.bottomRight
+                    : Alignment.bottomCenter,
+                child: _buildCard(
+                  context,
+                  libraryService,
+                  status,
+                  isDesktop: isDesktop,
+                ),
               ),
             )
             .animate(target: status.isSyncing ? 1 : 0)
@@ -45,18 +55,31 @@ class SyncProgressOverlay extends StatelessWidget {
   Widget _buildCard(
     BuildContext context,
     LibraryService libraryService,
-    LibrarySyncStatus status,
-  ) {
+    LibrarySyncStatus status, {
+    required bool isDesktop,
+  }) {
     final hasError = status.error != null;
     final l10n = LocalizationService();
 
     return Container(
-      width: double.infinity,
+      constraints: isDesktop ? const BoxConstraints(maxWidth: 380) : null,
+      width: isDesktop ? null : double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
         color: AppConstants.secondaryBackground,
-        borderRadius: BorderRadius.circular(AppConstants.largeRadius),
-        boxShadow: AppConstants.softShadow,
+        borderRadius: BorderRadius.circular(
+          isDesktop ? 10 : AppConstants.largeRadius,
+        ),
+        border: Border.all(color: AppConstants.borderColor),
+        boxShadow: isDesktop
+            ? [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.5),
+                  blurRadius: 16,
+                  offset: const Offset(0, 6),
+                ),
+              ]
+            : AppConstants.softShadow,
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
