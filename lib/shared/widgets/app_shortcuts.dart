@@ -1,9 +1,13 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:window_manager/window_manager.dart';
 import 'package:mangabaka_app/shared/widgets/trackpad_navigation_listener.dart';
 import 'package:mangabaka_app/features/navigation/screens/main_screen.dart';
 import 'package:mangabaka_app/features/profile/screens/settings_screen.dart';
 import 'package:mangabaka_app/core/constants/app_constants.dart';
+import 'package:mangabaka_app/desktop/shell/desktop_shell.dart';
 
 class BackIntent extends Intent {
   const BackIntent();
@@ -26,6 +30,10 @@ class RefreshIntent extends Intent {
   const RefreshIntent();
 }
 
+class FullscreenIntent extends Intent {
+  const FullscreenIntent();
+}
+
 class AppShortcuts extends StatelessWidget {
   final Widget child;
 
@@ -36,6 +44,7 @@ class AppShortcuts extends StatelessWidget {
     return Shortcuts(
       shortcuts: <ShortcutActivator, Intent>{
         LogicalKeySet(LogicalKeyboardKey.escape): const BackIntent(),
+        LogicalKeySet(LogicalKeyboardKey.f11): const FullscreenIntent(),
         LogicalKeySet(LogicalKeyboardKey.control, LogicalKeyboardKey.keyF): const SearchIntent(),
         LogicalKeySet(LogicalKeyboardKey.meta, LogicalKeyboardKey.keyF): const SearchIntent(),
         LogicalKeySet(LogicalKeyboardKey.control, LogicalKeyboardKey.comma): const SettingsIntent(),
@@ -59,10 +68,14 @@ class AppShortcuts extends StatelessWidget {
         actions: <Type, Action<Intent>>{
           BackIntent: CallbackAction<BackIntent>(
             onInvoke: (intent) {
+              // Dialogs and full-window routes sit on the root navigator and
+              // close first; after that, desktop unwinds its content area.
               final navigator = AppConstants.navigatorKey.currentState;
               if (navigator != null && navigator.canPop()) {
                 navigator.maybePop();
+                return null;
               }
+              DesktopShell.current?.popContent();
               return null;
             },
           ),
@@ -76,6 +89,16 @@ class AppShortcuts extends StatelessWidget {
           TabIntent: CallbackAction<TabIntent>(
             onInvoke: (intent) {
               MainScreen.setTabIndex(intent.index);
+              return null;
+            },
+          ),
+          FullscreenIntent: CallbackAction<FullscreenIntent>(
+            onInvoke: (intent) {
+              if (Platform.isWindows || Platform.isMacOS || Platform.isLinux) {
+                windowManager.isFullScreen().then((isFull) {
+                  windowManager.setFullScreen(!isFull);
+                });
+              }
               return null;
             },
           ),

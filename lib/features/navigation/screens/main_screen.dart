@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:mangabaka_app/core/constants/mock_series_data.dart';
 import 'package:mangabaka_app/core/constants/app_constants.dart';
 import 'package:mangabaka_app/core/localization/localization_service.dart';
 import 'package:mangabaka_app/core/logging/logging_service.dart';
@@ -8,6 +9,8 @@ import 'package:mangabaka_app/core/network/backend_health_banner.dart';
 import 'package:mangabaka_app/core/settings/settings_enums.dart';
 import 'package:mangabaka_app/core/settings/settings_manager.dart';
 import 'package:mangabaka_app/core/widgets/design/mb_nav.dart';
+import 'package:mangabaka_app/desktop/desktop_layout.dart';
+import 'package:mangabaka_app/desktop/shell/desktop_shell.dart';
 import 'package:mangabaka_app/features/browse/screens/browse_screen.dart';
 import 'package:mangabaka_app/features/home/screens/home_screen.dart';
 import 'package:mangabaka_app/features/library/screens/library_screen.dart';
@@ -32,6 +35,11 @@ class MainScreen extends StatefulWidget {
   /// Switches tabs from anywhere — used when a chip on one screen starts a
   /// search that belongs on another.
   static void setTabIndex(int index) {
+    final desktop = DesktopShell.current;
+    if (desktop != null) {
+      desktop.select(index);
+      return;
+    }
     mainScreenKey.currentState?._onItemTapped(index);
   }
 
@@ -93,6 +101,20 @@ class MainScreenState extends State<MainScreen> {
     _logger.info('MainScreen initialized with tab index: $_selectedIndex');
   }
 
+  bool _precached = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_precached) return;
+    _precached = true;
+    // The list-style preview in settings shows a bundled sample cover. Decoding
+    // it on first paint is what made the preview pop in, so decode it now and
+    // let the preview hit the image cache synchronously.
+    precacheImage(AssetImage(mockSeries222.coverUrl), context)
+        .catchError((_) {});
+  }
+
   @override
   void dispose() {
     _selectedIndexNotifier.dispose();
@@ -130,6 +152,19 @@ class MainScreenState extends State<MainScreen> {
       listenable: Listenable.merge([LocalizationService(), SettingsManager()]),
       builder: (context, _) {
         final l10n = LocalizationService();
+
+        // A wide desktop window gets the desktop presentation layer; the
+        // phone and tablet layouts below are for everything else.
+        if (DesktopLayout.isActive(context)) {
+          return DesktopShell(
+            initialIndex: _selectedIndex,
+            onIndexChanged: (index) {
+              _selectedIndex = index;
+              _selectedIndexNotifier.value = index;
+            },
+          );
+        }
+
         final isTablet = MediaQuery.sizeOf(context).width >= _tabletWidth;
 
         if (!isTablet) return _phoneLayout(l10n);

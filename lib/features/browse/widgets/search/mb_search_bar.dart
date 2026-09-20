@@ -28,6 +28,7 @@ class MBSearchBar extends StatefulWidget {
   final VoidCallback? onScanTap;
   final ValueChanged<AutocompleteSeriesResult>? onResultSelected;
   final VoidCallback? onBackTap;
+  final bool showFilterButton;
 
   const MBSearchBar({
     super.key,
@@ -40,6 +41,7 @@ class MBSearchBar extends StatefulWidget {
     this.onScanTap,
     this.onResultSelected,
     this.onBackTap,
+    this.showFilterButton = true,
   });
 
   @override
@@ -103,6 +105,7 @@ class _MBSearchBarState extends State<MBSearchBar> {
       onScanTap: widget.onScanTap,
       initialFilters: widget.initialFilters,
       onFilterApplied: widget.onFilterApplied,
+      showFilterButton: widget.showFilterButton,
       requestSuggestions: _requestSuggestions,
       suggestionsEnabled: () => SettingsManager().autoSuggestBrowse,
       rebuildOn: SettingsManager(),

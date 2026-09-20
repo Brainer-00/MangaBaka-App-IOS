@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:mangabaka_app/features/browse/controllers/browse_controller.dart';
 import 'package:mangabaka_app/features/browse/models/search_filters.dart';
 import 'package:mangabaka_app/features/browse/screens/browse_screen.dart';
+import 'package:mangabaka_app/desktop/screens/browse/desktop_browse_screen.dart';
 import 'package:mangabaka_app/features/navigation/screens/main_screen.dart';
 
 /// Hands a search to the Browse tab and takes the user there.
@@ -32,8 +33,10 @@ class BrowseNavigation {
   }
 
   static void _go(BuildContext context, void Function(BrowseController controller) seed) {
-    final browseState = BrowseScreen.browseScreenKey.currentState;
-    if (browseState != null) seed(browseState.controller);
+    // Whichever Browse is mounted — the phone screen or the desktop page.
+    final controller = BrowseScreen.browseScreenKey.currentState?.controller ??
+        DesktopBrowseScreen.stateKey.currentState?.controller;
+    if (controller != null) seed(controller);
 
     MainScreen.setTabIndex(browseTabIndex);
 

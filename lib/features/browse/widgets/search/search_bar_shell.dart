@@ -60,6 +60,11 @@ class SearchBarShell extends StatefulWidget {
   /// Adds the library-only sort options to the filter sheet.
   final bool showLibrarySorts;
 
+  /// Whether the trailing filter button (which opens the filter sheet) is
+  /// shown. Desktop layouts turn it off: their filters sit in a permanent
+  /// panel beside the results instead.
+  final bool showFilterButton;
+
   final SuggestionRequest requestSuggestions;
 
   /// Null means suggestions are always enabled.
@@ -83,6 +88,7 @@ class SearchBarShell extends StatefulWidget {
     this.initialFilters,
     this.onFilterApplied,
     this.showLibrarySorts = false,
+    this.showFilterButton = true,
     this.suggestionsEnabled,
     this.rebuildOn,
   });
@@ -271,7 +277,7 @@ class _SearchBarShellState extends State<SearchBarShell> {
           controllerText: _text.text,
           onClear: _controller.clear,
           onScanTap: widget.onScanTap,
-          onFilterTap: _openFilterSheet,
+          onFilterTap: widget.showFilterButton ? _openFilterSheet : null,
           currentFilters: _filters,
         ),
         filled: true,
