@@ -124,8 +124,11 @@ class BrowseContent extends StatelessWidget {
                 mainAxisSpacing: 10,
                 itemCount: itemCount,
                 itemBuilder: (context, index) {
-                  if (index == searchResults.length) {
-                    return const Center(child: CircularProgressIndicator());
+                  if (index >= searchResults.length) {
+                    if (isLoadingMore && index == searchResults.length) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                    return const SizedBox.shrink();
                   }
                   return _buildSeriesItem(searchResults[index] as Series, activeStyle: activeStyle);
                 },
@@ -143,8 +146,11 @@ class BrowseContent extends StatelessWidget {
               ),
               itemCount: itemCount,
               itemBuilder: (context, index) {
-                if (index == searchResults.length) {
-                  return const Center(child: CircularProgressIndicator());
+                if (index >= searchResults.length) {
+                  if (isLoadingMore && index == searchResults.length) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  return const SizedBox.shrink();
                 }
                 return _buildSeriesItem(searchResults[index] as Series, activeStyle: activeStyle);
               },
@@ -164,11 +170,14 @@ class BrowseContent extends StatelessWidget {
           controller: scrollController,
           itemCount: itemCount,
           itemBuilder: (context, index) {
-            if (index == searchResults.length) {
-              return const Padding(
-                padding: EdgeInsets.all(16.0),
-                child: Center(child: CircularProgressIndicator()),
-              );
+            if (index >= searchResults.length) {
+              if (isLoadingMore && index == searchResults.length) {
+                return const Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: Center(child: CircularProgressIndicator()),
+                );
+              }
+              return const SizedBox.shrink();
             }
             return _buildSeriesItem(searchResults[index] as Series, activeStyle: activeStyle);
           },
@@ -183,11 +192,14 @@ class BrowseContent extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 12),
       itemCount: searchResults.length + (isLoadingMore ? 1 : 0),
       itemBuilder: (context, index) {
-        if (index == searchResults.length) {
-          return const Padding(
-            padding: EdgeInsets.all(16.0),
-            child: Center(child: CircularProgressIndicator()),
-          );
+        if (index >= searchResults.length) {
+          if (isLoadingMore && index == searchResults.length) {
+            return const Padding(
+              padding: EdgeInsets.all(16.0),
+              child: Center(child: CircularProgressIndicator()),
+            );
+          }
+          return const SizedBox.shrink();
         }
         final publisher = searchResults[index] as Publisher;
         return PublisherListItem(
@@ -207,11 +219,14 @@ class BrowseContent extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 12),
       itemCount: searchResults.length + (isLoadingMore ? 1 : 0),
       itemBuilder: (context, index) {
-        if (index == searchResults.length) {
-          return const Padding(
-            padding: EdgeInsets.all(16.0),
-            child: Center(child: CircularProgressIndicator()),
-          );
+        if (index >= searchResults.length) {
+          if (isLoadingMore && index == searchResults.length) {
+            return const Padding(
+              padding: EdgeInsets.all(16.0),
+              child: Center(child: CircularProgressIndicator()),
+            );
+          }
+          return const SizedBox.shrink();
         }
         final staff = searchResults[index] as Staff;
         return StaffListItem(

@@ -13,9 +13,13 @@ import 'package:mangabaka_app/features/staff/models/staff.dart';
 /// *loading* — the controller owns that, along with deciding when a page is
 /// stale enough to drop.
 class BrowseResults {
-  final List<Series> series = [];
-  final List<Publisher> publishers = [];
-  final List<Staff> staff = [];
+  List<Series> _series = [];
+  List<Publisher> _publishers = [];
+  List<Staff> _staff = [];
+
+  List<Series> get series => _series;
+  List<Publisher> get publishers => _publishers;
+  List<Staff> get staff => _staff;
 
   /// The page number to request next. 1 until a page has been taken.
   int _page = 1;
@@ -36,11 +40,11 @@ class BrowseResults {
   List<dynamic> forType(BrowseType type) {
     switch (type) {
       case BrowseType.series:
-        return series;
+        return _series;
       case BrowseType.publishers:
-        return publishers;
+        return _publishers;
       case BrowseType.staff:
-        return staff;
+        return _staff;
       default:
         return const [];
     }
@@ -51,9 +55,9 @@ class BrowseResults {
   int loadedCount(BrowseType type) => forType(type).length;
 
   void clear() {
-    series.clear();
-    publishers.clear();
-    staff.clear();
+    _series = [];
+    _publishers = [];
+    _staff = [];
     _page = 1;
     _hasMore = true;
     _total = 0;
@@ -69,14 +73,14 @@ class BrowseResults {
   void markExhausted() => _hasMore = false;
 
   void addSeries(BrowsePage<Series> page) {
-    series.addAll(page.items);
+    _series = [..._series, ...page.items];
     _total = page.total;
     _isTotalCapped = page.isTotalCapped;
     _hasMore = page.hasMore;
   }
 
   void addPublishers(BrowsePage<Publisher> page) {
-    publishers.addAll(page.items);
+    _publishers = [..._publishers, ...page.items];
     _total = page.total;
     _hasMore = page.hasMore;
   }
@@ -86,8 +90,10 @@ class BrowseResults {
   /// credited as author is also the artist. The total is therefore the number
   /// of distinct people found, not a server-side count.
   void addStaff(BrowsePage<Staff> page) {
-    StaffAggregator.merge(staff, page.items);
-    _total = staff.length;
+    final updated = List<Staff>.from(_staff);
+    StaffAggregator.merge(updated, page.items);
+    _staff = updated;
+    _total = _staff.length;
     _hasMore = page.hasMore;
   }
 }
