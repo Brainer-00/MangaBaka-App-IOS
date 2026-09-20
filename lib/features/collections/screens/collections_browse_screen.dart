@@ -7,7 +7,10 @@ import 'package:mangabaka_app/core/localization/localization_service.dart';
 import 'package:mangabaka_app/core/logging/logging_service.dart';
 import 'package:mangabaka_app/core/theme/app_typography.dart';
 import 'package:mangabaka_app/core/utils/widget_utils.dart';
+import 'package:mangabaka_app/core/widgets/design/mb_pill.dart';
 import 'package:mangabaka_app/core/widgets/design/mb_screen_header.dart';
+import 'package:mangabaka_app/desktop/desktop_layout.dart';
+import 'package:mangabaka_app/desktop/widgets/desktop_surfaces.dart';
 import 'package:mangabaka_app/features/browse/screens/browse_results_screen.dart';
 import 'package:mangabaka_app/features/collections/models/edition.dart';
 import 'package:mangabaka_app/features/collections/screens/collection_detail_screen.dart';
@@ -71,6 +74,7 @@ class _CollectionsBrowseScreenState extends State<CollectionsBrowseScreen>
   @override
   void initState() {
     super.initState();
+    _tabs.addListener(_onTabChange);
     _loadEditions();
     if (widget.initialPublisher != null) {
       _publisher = widget.initialPublisher;
@@ -78,8 +82,13 @@ class _CollectionsBrowseScreenState extends State<CollectionsBrowseScreen>
     }
   }
 
+  void _onTabChange() {
+    if (mounted) setState(() {});
+  }
+
   @override
   void dispose() {
+    _tabs.removeListener(_onTabChange);
     _debounce?.cancel();
     _query.dispose();
     _tabs.dispose();
@@ -188,16 +197,109 @@ class _CollectionsBrowseScreenState extends State<CollectionsBrowseScreen>
   @override
   Widget build(BuildContext context) {
     final l10n = LocalizationService();
+    if (DesktopLayout.isActive(context)) {
+      return _buildDesktop(l10n);
+    }
+    return _buildMobile(l10n);
+  }
+
+  Widget _buildDesktop(LocalizationService l10n) {
+    return Scaffold(
+      backgroundColor: AppConstants.primaryBackground,
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          DesktopPageHeader(
+            leading: DesktopIconButton(
+              icon: Icons.arrow_back_rounded,
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+            title: l10n.translate('collections_and_editions'),
+            subtitle: _publisher?.name,
+            actions: [
+              DesktopSegmented<int>(
+                value: _tabs.index,
+                segments: [
+                  (0, l10n.translate('tab_collections'), Icons.collections_bookmark_rounded),
+                  (1, l10n.translate('editions'), Icons.auto_stories_rounded),
+                ],
+                onChanged: (index) {
+                  _tabs.animateTo(index);
+                  setState(() {});
+                },
+              ),
+            ],
+          ),
+          Expanded(
+            child: WidgetUtils.responsiveConstraint(
+              maxWidth: 960,
+              TabBarView(
+                controller: _tabs,
+                children: [_collectionsTab(l10n), _editionsTab(l10n)],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMobile(LocalizationService l10n) {
     return Scaffold(
       backgroundColor: AppConstants.primaryBackground,
       appBar: mbScreenAppBar(
         title: l10n.translate('collections_and_editions'),
-        bottom: TabBar(
-          controller: _tabs,
-          tabs: [
-            Tab(text: l10n.translate('tab_collections').toUpperCase()),
-            Tab(text: l10n.translate('editions').toUpperCase()),
-          ],
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(48),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+            child: Container(
+              decoration: BoxDecoration(
+                color: AppConstants.tertiaryBackground,
+                borderRadius: BorderRadius.circular(AppConstants.pillRadius),
+              ),
+              child: TabBar(
+                controller: _tabs,
+                dividerColor: Colors.transparent,
+                indicatorSize: TabBarIndicatorSize.tab,
+                indicator: BoxDecoration(
+                  color: AppConstants.accentColor,
+                  borderRadius: BorderRadius.circular(AppConstants.pillRadius),
+                ),
+                indicatorPadding: EdgeInsets.zero,
+                labelColor: AppConstants.onAccent,
+                unselectedLabelColor: AppConstants.textMutedColor,
+                labelStyle: AppTypography.display(fontSize: 12),
+                unselectedLabelStyle: AppTypography.display(fontSize: 12),
+                overlayColor: WidgetStateProperty.all(Colors.transparent),
+                splashFactory: NoSplash.splashFactory,
+                tabs: [
+                  Tab(
+                    height: 36,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.collections_bookmark_rounded, size: 16),
+                        const SizedBox(width: 8),
+                        Text(l10n.translate('tab_collections').toUpperCase()),
+                      ],
+                    ),
+                  ),
+                  Tab(
+                    height: 36,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.auto_stories_rounded, size: 16),
+                        const SizedBox(width: 8),
+                        Text(l10n.translate('editions').toUpperCase()),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ),
       ),
       body: WidgetUtils.responsiveConstraint(
@@ -416,16 +518,16 @@ class _CollectionsBrowseScreenState extends State<CollectionsBrowseScreen>
             spacing: 8,
             runSpacing: 8,
             children: [
-              ChoiceChip(
-                label: Text(l10n.translate('all_editions')),
+              MbPill(
+                label: l10n.translate('all_editions'),
                 selected: filter == null,
-                onSelected: (_) => setState(() => _editionFilter = null),
+                onTap: () => setState(() => _editionFilter = null),
               ),
               for (final name in editionNames)
-                ChoiceChip(
-                  label: Text(name),
+                MbPill(
+                  label: name,
                   selected: filter == name,
-                  onSelected: (_) => setState(() => _editionFilter = name),
+                  onTap: () => setState(() => _editionFilter = name),
                 ),
             ],
           ),
