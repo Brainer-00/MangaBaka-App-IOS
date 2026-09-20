@@ -1,7 +1,7 @@
 import 'package:intl/intl.dart';
 
 class AppDateUtils {
-  AppDateUtils._(); 
+  AppDateUtils._();
 
   static String extractYear(String date) {
     if (date.isEmpty) return '';
