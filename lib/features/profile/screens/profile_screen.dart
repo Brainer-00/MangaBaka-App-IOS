@@ -211,9 +211,9 @@ class _ProfileScreenState extends State<ProfileScreen> with ProfileDataMixin {
             title: Text(
               _buildProfileTitle(username, l10n).toUpperCase(),
               style: AppTypography.display(
-            color: AppConstants.textColor,
-            fontSize: 20,
-          ),
+                color: AppConstants.textColor,
+                fontSize: 20,
+              ),
             ),
             actions: [
               IconButton(
@@ -226,7 +226,10 @@ class _ProfileScreenState extends State<ProfileScreen> with ProfileDataMixin {
           body: Actions(
             actions: <Type, Action<Intent>>{
               RefreshIntent: CallbackAction<RefreshIntent>(
-                onInvoke: (_) { bootstrap(); return null; },
+                onInvoke: (_) {
+                  bootstrap();
+                  return null;
+                },
               ),
             },
             child: WidgetUtils.responsiveConstraint(_buildBody(l10n)),

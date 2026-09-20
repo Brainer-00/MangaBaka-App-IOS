@@ -20,7 +20,11 @@ class StatisticsService {
       ])..addColumns([count]);
 
       if (contentPreferences != null && contentPreferences.isNotEmpty) {
-        query.where(_db.seriesTable.contentRating.isIn(contentPreferences.map((e) => e.toLowerCase()).toList()));
+        query.where(
+          _db.seriesTable.contentRating.isIn(
+            contentPreferences.map((e) => e.toLowerCase()).toList(),
+          ),
+        );
       }
 
       final result = await query.getSingle();
@@ -29,7 +33,11 @@ class StatisticsService {
       return val;
     } catch (e, st) {
       _logger.severe('Failed to get total series from DB: $e\n$st');
-      throw DatabaseException(message: 'Failed to get total series', originalError: e, stackTrace: st);
+      throw DatabaseException(
+        message: 'Failed to get total series',
+        originalError: e,
+        stackTrace: st,
+      );
     }
   }
 
@@ -44,7 +52,11 @@ class StatisticsService {
       ])..addColumns([sum]);
 
       if (contentPreferences != null && contentPreferences.isNotEmpty) {
-        query.where(_db.seriesTable.contentRating.isIn(contentPreferences.map((e) => e.toLowerCase()).toList()));
+        query.where(
+          _db.seriesTable.contentRating.isIn(
+            contentPreferences.map((e) => e.toLowerCase()).toList(),
+          ),
+        );
       }
 
       final result = await query.getSingle();
@@ -53,7 +65,11 @@ class StatisticsService {
       return val;
     } catch (e, st) {
       _logger.severe('Failed to get chapters read from DB: $e\n$st');
-      throw DatabaseException(message: 'Failed to get chapters read', originalError: e, stackTrace: st);
+      throw DatabaseException(
+        message: 'Failed to get chapters read',
+        originalError: e,
+        stackTrace: st,
+      );
     }
   }
 
@@ -68,7 +84,11 @@ class StatisticsService {
       ])..addColumns([sum]);
 
       if (contentPreferences != null && contentPreferences.isNotEmpty) {
-        query.where(_db.seriesTable.contentRating.isIn(contentPreferences.map((e) => e.toLowerCase()).toList()));
+        query.where(
+          _db.seriesTable.contentRating.isIn(
+            contentPreferences.map((e) => e.toLowerCase()).toList(),
+          ),
+        );
       }
 
       final result = await query.getSingle();
@@ -77,7 +97,11 @@ class StatisticsService {
       return val;
     } catch (e, st) {
       _logger.severe('Failed to get volumes read from DB: $e\n$st');
-      throw DatabaseException(message: 'Failed to get volumes read', originalError: e, stackTrace: st);
+      throw DatabaseException(
+        message: 'Failed to get volumes read',
+        originalError: e,
+        stackTrace: st,
+      );
     }
   }
 
@@ -96,7 +120,11 @@ class StatisticsService {
       ])..addColumns([totalCount, completedCount]);
 
       if (contentPreferences != null && contentPreferences.isNotEmpty) {
-        query.where(_db.seriesTable.contentRating.isIn(contentPreferences.map((e) => e.toLowerCase()).toList()));
+        query.where(
+          _db.seriesTable.contentRating.isIn(
+            contentPreferences.map((e) => e.toLowerCase()).toList(),
+          ),
+        );
       }
 
       final result = await query.getSingle();
@@ -109,7 +137,11 @@ class StatisticsService {
       return rate;
     } catch (e, st) {
       _logger.severe('Failed to calculate completion rate: $e\n$st');
-      throw DatabaseException(message: 'Failed to get completion rate', originalError: e, stackTrace: st);
+      throw DatabaseException(
+        message: 'Failed to get completion rate',
+        originalError: e,
+        stackTrace: st,
+      );
     }
   }
 
@@ -124,7 +156,11 @@ class StatisticsService {
       ])..addColumns([sum]);
 
       if (contentPreferences != null && contentPreferences.isNotEmpty) {
-        query.where(_db.seriesTable.contentRating.isIn(contentPreferences.map((e) => e.toLowerCase()).toList()));
+        query.where(
+          _db.seriesTable.contentRating.isIn(
+            contentPreferences.map((e) => e.toLowerCase()).toList(),
+          ),
+        );
       }
 
       final result = await query.getSingle();
@@ -133,24 +169,33 @@ class StatisticsService {
       return val;
     } catch (e, st) {
       _logger.severe('Failed to get total rereads from DB: $e\n$st');
-      throw DatabaseException(message: 'Failed to get total rereads', originalError: e, stackTrace: st);
+      throw DatabaseException(
+        message: 'Failed to get total rereads',
+        originalError: e,
+        stackTrace: st,
+      );
     }
   }
 
   Future<double> getMeanScore({List<String>? contentPreferences}) async {
     try {
       final avg = _db.libraryEntriesTable.rating.avg();
-      final query = _db.selectOnly(_db.libraryEntriesTable).join([
-        drift.innerJoin(
-          _db.seriesTable,
-          _db.seriesTable.id.equalsExp(_db.libraryEntriesTable.seriesId),
-        ),
-      ])
-        ..addColumns([avg])
-        ..where(_db.libraryEntriesTable.rating.isNotNull());
+      final query =
+          _db.selectOnly(_db.libraryEntriesTable).join([
+              drift.innerJoin(
+                _db.seriesTable,
+                _db.seriesTable.id.equalsExp(_db.libraryEntriesTable.seriesId),
+              ),
+            ])
+            ..addColumns([avg])
+            ..where(_db.libraryEntriesTable.rating.isNotNull());
 
       if (contentPreferences != null && contentPreferences.isNotEmpty) {
-        query.where(_db.seriesTable.contentRating.isIn(contentPreferences.map((e) => e.toLowerCase()).toList()));
+        query.where(
+          _db.seriesTable.contentRating.isIn(
+            contentPreferences.map((e) => e.toLowerCase()).toList(),
+          ),
+        );
       }
 
       final result = await query.getSingle();
@@ -159,7 +204,11 @@ class StatisticsService {
       return val;
     } catch (e, st) {
       _logger.severe('Failed to calculate mean score: $e\n$st');
-      throw DatabaseException(message: 'Failed to get mean score', originalError: e, stackTrace: st);
+      throw DatabaseException(
+        message: 'Failed to get mean score',
+        originalError: e,
+        stackTrace: st,
+      );
     }
   }
 
@@ -167,7 +216,7 @@ class StatisticsService {
     try {
       final completedExpr = _db.libraryEntriesTable.state.equals('completed');
       final droppedExpr = _db.libraryEntriesTable.state.equals('dropped');
-      
+
       final completedCount = drift.countAll(filter: completedExpr);
       final droppedCount = drift.countAll(filter: droppedExpr);
 
@@ -177,9 +226,13 @@ class StatisticsService {
           _db.seriesTable.id.equalsExp(_db.libraryEntriesTable.seriesId),
         ),
       ])..addColumns([completedCount, droppedCount]);
-      
+
       if (contentPreferences != null && contentPreferences.isNotEmpty) {
-        query.where(_db.seriesTable.contentRating.isIn(contentPreferences.map((e) => e.toLowerCase()).toList()));
+        query.where(
+          _db.seriesTable.contentRating.isIn(
+            contentPreferences.map((e) => e.toLowerCase()).toList(),
+          ),
+        );
       }
 
       final result = await query.getSingle();
@@ -190,26 +243,37 @@ class StatisticsService {
       if (total == 0) return 0.0;
 
       final rate = (completed / total) * 100;
-      _logger.fine('Finish rate: $rate% ($completed completed, $dropped dropped)');
+      _logger.fine(
+        'Finish rate: $rate% ($completed completed, $dropped dropped)',
+      );
       return rate;
     } catch (e, st) {
       _logger.severe('Failed to calculate finish rate: $e\n$st');
-      throw DatabaseException(message: 'Failed to get finish rate', originalError: e, stackTrace: st);
+      throw DatabaseException(
+        message: 'Failed to get finish rate',
+        originalError: e,
+        stackTrace: st,
+      );
     }
   }
 
-  Future<LibraryEntryWithSeries?> getHighestRatedSeries({List<String>? contentPreferences}) async {
+  Future<LibraryEntryWithSeries?> getHighestRatedSeries({
+    List<String>? contentPreferences,
+  }) async {
     try {
       final query = _db.select(_db.libraryEntriesTable).join([
         drift.innerJoin(
           _db.seriesTable,
           _db.seriesTable.id.equalsExp(_db.libraryEntriesTable.seriesId),
         ),
-      ])
-        ..where(_db.libraryEntriesTable.rating.isNotNull());
+      ])..where(_db.libraryEntriesTable.rating.isNotNull());
 
       if (contentPreferences != null && contentPreferences.isNotEmpty) {
-        query.where(_db.seriesTable.contentRating.isIn(contentPreferences.map((e) => e.toLowerCase()).toList()));
+        query.where(
+          _db.seriesTable.contentRating.isIn(
+            contentPreferences.map((e) => e.toLowerCase()).toList(),
+          ),
+        );
       }
 
       query
@@ -239,23 +303,38 @@ class StatisticsService {
       return entry;
     } catch (e, st) {
       _logger.severe('Failed to get highest rated series from DB: $e\n$st');
-      throw DatabaseException(message: 'Failed to get highest rated series', originalError: e, stackTrace: st);
+      throw DatabaseException(
+        message: 'Failed to get highest rated series',
+        originalError: e,
+        stackTrace: st,
+      );
     }
   }
 
-  Future<LibraryEntryWithSeries?> getMostRereadSeries({List<String>? contentPreferences}) async {
+  Future<LibraryEntryWithSeries?> getMostRereadSeries({
+    List<String>? contentPreferences,
+  }) async {
     try {
-      final query = _db.select(_db.libraryEntriesTable).join([
-        drift.innerJoin(
-          _db.seriesTable,
-          _db.seriesTable.id.equalsExp(_db.libraryEntriesTable.seriesId),
-        ),
-      ])
-        ..where(_db.libraryEntriesTable.numberOfRereads.isNotNull())
-        ..where(_db.libraryEntriesTable.numberOfRereads.isBiggerThan(const drift.Constant(0)));
+      final query =
+          _db.select(_db.libraryEntriesTable).join([
+              drift.innerJoin(
+                _db.seriesTable,
+                _db.seriesTable.id.equalsExp(_db.libraryEntriesTable.seriesId),
+              ),
+            ])
+            ..where(_db.libraryEntriesTable.numberOfRereads.isNotNull())
+            ..where(
+              _db.libraryEntriesTable.numberOfRereads.isBiggerThan(
+                const drift.Constant(0),
+              ),
+            );
 
       if (contentPreferences != null && contentPreferences.isNotEmpty) {
-        query.where(_db.seriesTable.contentRating.isIn(contentPreferences.map((e) => e.toLowerCase()).toList()));
+        query.where(
+          _db.seriesTable.contentRating.isIn(
+            contentPreferences.map((e) => e.toLowerCase()).toList(),
+          ),
+        );
       }
 
       query
@@ -285,7 +364,11 @@ class StatisticsService {
       return entry;
     } catch (e, st) {
       _logger.severe('Failed to get most reread series from DB: $e\n$st');
-      throw DatabaseException(message: 'Failed to get most reread series', originalError: e, stackTrace: st);
+      throw DatabaseException(
+        message: 'Failed to get most reread series',
+        originalError: e,
+        stackTrace: st,
+      );
     }
   }
 }

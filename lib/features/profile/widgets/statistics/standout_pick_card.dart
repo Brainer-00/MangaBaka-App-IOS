@@ -34,7 +34,10 @@ class StandoutPickCard extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             label,
-            style: AppTypography.sans(color: AppConstants.textMutedColor, fontSize: 14),
+            style: AppTypography.sans(
+              color: AppConstants.textMutedColor,
+              fontSize: 14,
+            ),
           ),
           const SizedBox(height: 8),
           GestureDetector(

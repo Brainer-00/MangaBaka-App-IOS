@@ -38,10 +38,12 @@ mixin ProfileDataMixin<T extends StatefulWidget> on State<T> {
   Future<void> fetchStatistics() async {
     final contentPrefs = SettingsManager().contentPreferences;
     final results = await Future.wait([
-      statisticsService.getTotalSeries(contentPreferences: contentPrefs),   // [0]
-      statisticsService.getChaptersRead(contentPreferences: contentPrefs),  // [1]
-      statisticsService.getVolumesRead(contentPreferences: contentPrefs),   // [2]
-      statisticsService.getMeanScore(contentPreferences: contentPrefs),     // [3]
+      statisticsService.getTotalSeries(contentPreferences: contentPrefs), // [0]
+      statisticsService.getChaptersRead(
+        contentPreferences: contentPrefs,
+      ), // [1]
+      statisticsService.getVolumesRead(contentPreferences: contentPrefs), // [2]
+      statisticsService.getMeanScore(contentPreferences: contentPrefs), // [3]
     ]);
     if (!mounted) return;
     setState(() {

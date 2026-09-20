@@ -14,7 +14,7 @@ import 'package:http/http.dart' as http;
 class SnapshotService {
   final _logger = LoggingService.logger;
   final ProfileAuthService _auth;
-  
+
   // Simple in-memory cache for the "Activity" list
   List<LibraryEntry>? _cachedActivities;
   List<LibraryEntry>? get cachedActivities => _cachedActivities;
@@ -52,22 +52,25 @@ class SnapshotService {
     try {
       final token = await _auth.getValidAccessToken();
       final contentPrefs = SettingsManager().contentPreferences;
-      var urlStr = '${LibraryConstants.baseUrl}?page=$page&limit=$limit&sort_by=$sortBy';
+      var urlStr =
+          '${LibraryConstants.baseUrl}?page=$page&limit=$limit&sort_by=$sortBy';
       for (final pref in contentPrefs) {
         urlStr += '&content_rating=$pref';
       }
       final uri = Uri.parse(urlStr);
 
-      final response = await http.get(
-        uri,
-        headers: {
-          'Authorization': 'Bearer $token',
-          'User-Agent': LibraryConstants.userAgent,
-        },
-      ).timeout(
-        Duration(seconds: AppConstants.networkTimeoutSeconds),
-        onTimeout: () => throw TimeoutException('Snapshot fetch timed out'),
-      );
+      final response = await http
+          .get(
+            uri,
+            headers: {
+              'Authorization': 'Bearer $token',
+              'User-Agent': LibraryConstants.userAgent,
+            },
+          )
+          .timeout(
+            Duration(seconds: AppConstants.networkTimeoutSeconds),
+            onTimeout: () => throw TimeoutException('Snapshot fetch timed out'),
+          );
 
       _logger.fine('Snapshot fetch completed (sortBy: $sortBy, page: $page)');
 
@@ -89,9 +92,14 @@ class SnapshotService {
 
       final data = (jsonDecode(response.body)['data'] as List<dynamic>? ?? []);
       final results = data.map((item) => LibraryEntry.fromJson(item)).toList();
-      
+
       if (contentPrefs.isNotEmpty) {
-        return results.where((e) => contentPrefs.contains(e.series.contentRating.toLowerCase())).toList();
+        return results
+            .where(
+              (e) =>
+                  contentPrefs.contains(e.series.contentRating.toLowerCase()),
+            )
+            .toList();
       }
       return results;
     } on AppException {
