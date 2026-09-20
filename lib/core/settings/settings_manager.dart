@@ -83,7 +83,8 @@ class SettingsManager extends ChangeNotifier {
   final _hasCompletedOnboarding =
       BoolSetting(SettingsKeys.onboardingCompleted, false);
   final _pushNotifications = BoolSetting(SettingsKeys.pushNotifications, false);
-  final _autoSuggestBrowse = BoolSetting(SettingsKeys.autoSuggestBrowse, false);
+  final _autoSuggestBrowse = BoolSetting(SettingsKeys.autoSuggestBrowse, true);
+  final _autoSuggestLibrary = BoolSetting(SettingsKeys.autoSuggestLibrary, false);
   final _showTooltips = BoolSetting(SettingsKeys.showTooltips, true);
   final _showQuickProgress = BoolSetting(SettingsKeys.showQuickProgress, true);
   final _showLibraryProgress =
@@ -134,6 +135,7 @@ class SettingsManager extends ChangeNotifier {
     _hasCompletedOnboarding,
     _pushNotifications,
     _autoSuggestBrowse,
+    _autoSuggestLibrary,
     _showTooltips,
     _showQuickProgress,
     _showLibraryProgress,
@@ -168,12 +170,16 @@ class SettingsManager extends ChangeNotifier {
     }
   }
 
-  /// Applies [value], persists it and notifies — skipping all three when it
-  /// matches what is already held.
+  /// Applies [value], notifies the UI immediately, and persists in the background.
   Future<void> _apply<T>(SettingValue<T> setting, T value) async {
     if (!setting.set(value)) return;
-    await setting.persist(await _getPrefs());
     notifyListeners();
+    try {
+      final prefs = await _getPrefs();
+      await setting.persist(prefs);
+    } catch (_) {
+      // In-memory update succeeded; ignore disk persistence errors in background
+    }
   }
 
   // ─── List styles ─────────────────────────────────────────────────────────
@@ -318,6 +324,10 @@ class SettingsManager extends ChangeNotifier {
   bool get autoSuggestBrowse => _autoSuggestBrowse.value;
   Future<void> setAutoSuggestBrowse(bool value) =>
       _apply(_autoSuggestBrowse, value);
+
+  bool get autoSuggestLibrary => _autoSuggestLibrary.value;
+  Future<void> setAutoSuggestLibrary(bool value) =>
+      _apply(_autoSuggestLibrary, value);
 
   bool get showTooltips => _showTooltips.value;
   Future<void> setShowTooltips(bool value) => _apply(_showTooltips, value);

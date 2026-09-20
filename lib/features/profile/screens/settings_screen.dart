@@ -6,6 +6,7 @@ import 'package:mangabaka_app/core/motion/app_motion.dart';
 import 'package:mangabaka_app/core/settings/settings_manager.dart';
 import 'package:mangabaka_app/core/theme/app_typography.dart';
 import 'package:mangabaka_app/core/utils/widget_utils.dart';
+import 'package:mangabaka_app/desktop/shell/desktop_shell.dart';
 import 'package:mangabaka_app/features/profile/screens/settings/settings_dialog.dart';
 import 'package:mangabaka_app/features/profile/screens/settings/settings_root_groups.dart';
 import 'package:mangabaka_app/features/profile/services/profile_auth_service.dart';
@@ -20,6 +21,13 @@ class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
 
   static void show(BuildContext context) {
+    // Desktop has settings as a page in its sidebar, not a pushed screen.
+    final desktop = DesktopShell.current;
+    if (desktop != null) {
+      desktop.openSettings();
+      return;
+    }
+
     final isLandscape =
         MediaQuery.orientationOf(context) == Orientation.landscape;
     if (isLandscape) {
@@ -103,8 +111,7 @@ class _BrandHeader extends StatelessWidget {
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: AppConstants.accentColor.withValues(alpha: 0.12),
-                borderRadius:
-                    BorderRadius.circular(AppConstants.cardRadius),
+                borderRadius: BorderRadius.circular(AppConstants.cardRadius),
               ),
               child: Image.asset(
                 'assets/mangabaka512.png',

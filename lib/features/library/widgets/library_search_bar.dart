@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:mangabaka_app/core/settings/settings_manager.dart';
 import 'package:mangabaka_app/features/browse/models/search_filters.dart';
 import 'package:mangabaka_app/features/browse/widgets/search/autocomplete_ranking.dart';
 import 'package:mangabaka_app/features/browse/widgets/search/search_bar_shell.dart';
@@ -27,6 +28,7 @@ class LibrarySearchBar extends StatefulWidget {
 
   final ValueChanged<AutocompleteSeriesResult>? onResultSelected;
   final VoidCallback? onBackTap;
+  final bool showFilterButton;
 
   const LibrarySearchBar({
     super.key,
@@ -37,6 +39,7 @@ class LibrarySearchBar extends StatefulWidget {
     this.entriesStream,
     this.onResultSelected,
     this.onBackTap,
+    this.showFilterButton = true,
   });
 
   @override
@@ -101,7 +104,10 @@ class _LibrarySearchBarState extends State<LibrarySearchBar> {
       initialFilters: widget.initialFilters,
       onFilterApplied: widget.onFilterApplied,
       showLibrarySorts: true,
+      showFilterButton: widget.showFilterButton,
       requestSuggestions: _requestSuggestions,
+      suggestionsEnabled: () => SettingsManager().autoSuggestLibrary,
+      rebuildOn: SettingsManager(),
     );
   }
 }

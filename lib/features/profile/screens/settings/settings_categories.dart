@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:mangabaka_app/core/constants/app_constants.dart';
 import 'package:mangabaka_app/core/localization/localization_service.dart';
 import 'package:mangabaka_app/core/settings/settings_manager.dart';
+import 'package:mangabaka_app/core/widgets/app_snack_bar.dart';
+import 'package:mangabaka_app/desktop/desktop_layout.dart';
 import 'package:mangabaka_app/features/navigation/screens/onboarding_screen.dart';
 import 'package:mangabaka_app/features/profile/screens/logs_screen.dart';
 import 'package:mangabaka_app/features/profile/screens/settings/settings_navigation.dart';
@@ -35,8 +37,7 @@ class SettingsCategories {
       buildChildren: (ctx) {
         final l10n = LocalizationService();
         final settings = SettingsManager();
-        final isSmallDevice =
-            MediaQuery.sizeOf(ctx).width < _smallDeviceWidth;
+        final isSmallDevice = MediaQuery.sizeOf(ctx).width < _smallDeviceWidth;
 
         return [
           SettingsGroup(
@@ -50,7 +51,6 @@ class SettingsCategories {
                 onTap: () =>
                     GeneralSettingsDialogs.showLanguageSelectionDialog(ctx),
                 isFirst: true,
-                iconColor: AppConstants.infoColor,
               ),
               const SettingsDivider(),
               SettingsItem(
@@ -61,19 +61,24 @@ class SettingsCategories {
                 ),
                 onTap: () =>
                     GeneralSettingsDialogs.showAppStartPageSelectionDialog(ctx),
-                iconColor: AppConstants.accentColor,
               ),
-              const SettingsDivider(),
-              SettingsItem(
-                icon: Icons.stay_primary_landscape_outlined,
-                title: l10n.translate('landscape_appbar_position'),
-                subtitle: GeneralSettingsDialogs.getLandscapeAppBarPositionName(
-                  settings.landscapeAppBarPosition,
+              // The desktop shell has its own sidebar; where the phone and
+              // tablet bar sits does not apply to it.
+              if (!DesktopLayout.isActive(ctx)) ...[
+                const SettingsDivider(),
+                SettingsItem(
+                  icon: Icons.stay_primary_landscape_outlined,
+                  title: l10n.translate('landscape_appbar_position'),
+                  subtitle:
+                      GeneralSettingsDialogs.getLandscapeAppBarPositionName(
+                        settings.landscapeAppBarPosition,
+                      ),
+                  onTap: () =>
+                      GeneralSettingsDialogs.showLandscapeAppBarPositionDialog(
+                        ctx,
+                      ),
                 ),
-                onTap: () => GeneralSettingsDialogs
-                    .showLandscapeAppBarPositionDialog(ctx),
-                iconColor: const Color(0xFFAC4BFF),
-              ),
+              ],
               const SettingsDivider(),
               SettingsItem(
                 icon: Icons.translate,
@@ -81,9 +86,10 @@ class SettingsCategories {
                 subtitle: GeneralSettingsDialogs.getTitleLanguageName(
                   settings.defaultTitleLanguage,
                 ),
-                onTap: () => GeneralSettingsDialogs
-                    .showTitleLanguageSelectionDialog(ctx),
-                iconColor: const Color(0xFFD71F75),
+                onTap: () =>
+                    GeneralSettingsDialogs.showTitleLanguageSelectionDialog(
+                      ctx,
+                    ),
               ),
               if (!isSmallDevice) ...[
                 const SettingsDivider(),
@@ -93,7 +99,6 @@ class SettingsCategories {
                   subtitle: l10n.translate('show_tooltips_subtext'),
                   value: settings.showTooltips,
                   onChanged: settings.setShowTooltips,
-                  iconColor: AppConstants.starColor,
                 ),
               ],
               const SettingsDivider(),
@@ -103,8 +108,15 @@ class SettingsCategories {
                 subtitle: l10n.translate('auto_suggest_browse_subtitle'),
                 value: settings.autoSuggestBrowse,
                 onChanged: settings.setAutoSuggestBrowse,
+              ),
+              const SettingsDivider(),
+              SettingsSwitchItem(
+                icon: Icons.local_library_outlined,
+                title: l10n.translate('auto_suggest_library'),
+                subtitle: l10n.translate('auto_suggest_library_subtitle'),
+                value: settings.autoSuggestLibrary,
+                onChanged: settings.setAutoSuggestLibrary,
                 isLast: true,
-                iconColor: const Color(0xFF4FBEC4),
               ),
             ],
           ),
@@ -141,10 +153,11 @@ class SettingsCategories {
                 subtitle: GeneralSettingsDialogs.getRatingSliderStepName(
                   settings.ratingSliderStep,
                 ),
-                onTap: () => GeneralSettingsDialogs
-                    .showRatingSliderStepSelectionDialog(ctx),
+                onTap: () =>
+                    GeneralSettingsDialogs.showRatingSliderStepSelectionDialog(
+                      ctx,
+                    ),
                 isFirst: true,
-                iconColor: AppConstants.starColor,
               ),
               const SettingsDivider(),
               SettingsItem(
@@ -153,9 +166,10 @@ class SettingsCategories {
                 subtitle: GeneralSettingsDialogs.getLibraryTabName(
                   settings.addLibraryDefaultTab,
                 ),
-                onTap: () => GeneralSettingsDialogs
-                    .showAddLibraryDefaultTabSelectionDialog(ctx),
-                iconColor: AppConstants.infoColor,
+                onTap: () =>
+                    GeneralSettingsDialogs.showAddLibraryDefaultTabSelectionDialog(
+                      ctx,
+                    ),
               ),
               const SettingsDivider(),
               SettingsItem(
@@ -166,7 +180,6 @@ class SettingsCategories {
                 ),
                 onTap: () =>
                     ContentPreferencesDialogs.showContentPreferencesDialog(ctx),
-                iconColor: AppConstants.errorColor,
               ),
               const SettingsDivider(),
               SettingsSwitchItem(
@@ -176,7 +189,6 @@ class SettingsCategories {
                 value: settings.hideLibrarySeriesInBrowse,
                 onChanged: settings.setHideLibrarySeriesInBrowse,
                 isLast: true,
-                iconColor: const Color(0xFFAC4BFF),
               ),
             ],
           ),
@@ -210,14 +222,12 @@ class SettingsCategories {
                 size: 20,
               ),
               isFirst: true,
-              iconColor: AppConstants.accentColor,
             ),
             const SettingsDivider(),
             SettingsItem(
               icon: Icons.logout_outlined,
               title: l10n.translate('logout'),
               subtitle: l10n.translate('logout_subtext'),
-              iconColor: AppConstants.errorColor,
               onTap: () => _confirmAndLogout(ctx, auth),
               isLast: true,
             ),
@@ -245,14 +255,15 @@ class SettingsCategories {
       await auth.logout();
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Logout failed: $e')),
-        );
+        AppSnackBar.show(context, 'Logout failed: $e', isError: true);
       }
       return;
     }
 
     if (!context.mounted) return;
+    // Shown inline (desktop), there is no category or root to close: the
+    // page drops the account category itself once signed out.
+    if (InlineSettingsHost.maybeOf(context) != null) return;
     Navigator.pop(context); // Close the account category.
     Navigator.pop(context); // Close the settings root.
   }
@@ -269,14 +280,14 @@ class SettingsCategories {
               icon: Icons.restart_alt,
               title: l10n.translate('redo_onboarding'),
               subtitle: l10n.translate('redo_onboarding_subtitle'),
-              onTap: () => Navigator.push(
-                ctx,
+              // Root navigator: onboarding is a full-window flow, not a page
+              // inside the desktop content area.
+              onTap: () => Navigator.of(ctx, rootNavigator: true).push(
                 MaterialPageRoute(
                   builder: (_) => const OnboardingScreen(isRedoing: true),
                 ),
               ),
               isFirst: true,
-              iconColor: const Color(0xFFF98F3A),
             ),
             const SettingsDivider(),
             SettingsItem(
@@ -288,7 +299,6 @@ class SettingsCategories {
                 MaterialPageRoute(builder: (_) => const LogsScreen()),
               ),
               isLast: true,
-              iconColor: AppConstants.errorColor,
             ),
           ],
         ),

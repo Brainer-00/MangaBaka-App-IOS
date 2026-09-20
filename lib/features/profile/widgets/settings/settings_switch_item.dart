@@ -10,7 +10,6 @@ class SettingsSwitchItem extends StatelessWidget {
   final ValueChanged<bool> onChanged;
   final bool isFirst;
   final bool isLast;
-  final Color? iconColor;
 
   const SettingsSwitchItem({
     super.key,
@@ -21,13 +20,14 @@ class SettingsSwitchItem extends StatelessWidget {
     required this.onChanged,
     this.isFirst = false,
     this.isLast = false,
-    this.iconColor,
   });
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
       onTap: () => onChanged(!value),
+      splashColor: Colors.transparent,
+      highlightColor: AppConstants.tertiaryBackground.withValues(alpha: 0.5),
       borderRadius: BorderRadius.vertical(
         top: isFirst ? Radius.circular(AppConstants.cardRadius) : Radius.zero,
         bottom: isLast ? Radius.circular(AppConstants.cardRadius) : Radius.zero,
@@ -36,20 +36,11 @@ class SettingsSwitchItem extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 14.0),
         child: Row(
           children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: AppConstants.tertiaryBackground,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(
-                icon,
-                color: iconColor ?? AppConstants.accentColor,
-                size: 20,
-              ),
+            SizedBox(
+              width: 24,
+              child: Icon(icon, color: AppConstants.textMutedColor, size: 20),
             ),
-            const SizedBox(width: 14),
+            const SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

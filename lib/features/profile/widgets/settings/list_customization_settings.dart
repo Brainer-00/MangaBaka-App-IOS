@@ -98,10 +98,11 @@ class _ListCustomizationSettingsState extends State<ListCustomizationSettings>
     final index = AppListStyle.values.indexOf(_scope.style);
     if (index == -1) return;
 
-    final target = ((index * _styleCardStride) -
-            (MediaQuery.sizeOf(context).width / 2) +
-            (_styleCardWidth / 2))
-        .clamp(0.0, _scrollController.position.maxScrollExtent);
+    final target =
+        ((index * _styleCardStride) -
+                (MediaQuery.sizeOf(context).width / 2) +
+                (_styleCardWidth / 2))
+            .clamp(0.0, _scrollController.position.maxScrollExtent);
 
     if (animated) {
       _scrollController.animateTo(
@@ -219,7 +220,6 @@ class _ListCustomizationSettingsState extends State<ListCustomizationSettings>
               onChanged: settings.setShowLibraryTabCounts,
               isFirst: true,
               isLast: true,
-              iconColor: const Color(0xFFD71F75),
             ),
           ],
         ),
@@ -264,27 +264,30 @@ class _ListCustomizationSettingsState extends State<ListCustomizationSettings>
   Widget _buildStylePicker(ListCustomizationScope scope) {
     return SizedBox(
       height: 200,
-      child: ListView.separated(
-        controller: _scrollController,
-        padding: EdgeInsets.zero,
-        scrollDirection: Axis.horizontal,
-        itemCount: AppListStyle.values.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 8),
-        itemBuilder: (context, index) {
-          final style = AppListStyle.values[index];
-          return ListStylePreviewItem(
-            style: style,
-            isSelected: scope.style == style,
-            label: ListStyleDialogs.getListStyleName(style),
-            onTap: () {
-              scope.setStyle(style);
-              // Re-centre after the change has been applied and laid out.
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                _scrollToSelected(animated: true);
-              });
-            },
-          );
-        },
+      child: ScrollConfiguration(
+        behavior: const ScrollBehavior().copyWith(scrollbars: false),
+        child: ListView.separated(
+          controller: _scrollController,
+          padding: EdgeInsets.zero,
+          scrollDirection: Axis.horizontal,
+          itemCount: AppListStyle.values.length,
+          separatorBuilder: (_, __) => const SizedBox(width: 8),
+          itemBuilder: (context, index) {
+            final style = AppListStyle.values[index];
+            return ListStylePreviewItem(
+              style: style,
+              isSelected: scope.style == style,
+              label: ListStyleDialogs.getListStyleName(style),
+              onTap: () {
+                scope.setStyle(style);
+                // Re-centre after the change has been applied and laid out.
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  _scrollToSelected(animated: true);
+                });
+              },
+            );
+          },
+        ),
       ),
     );
   }

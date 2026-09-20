@@ -62,7 +62,8 @@ class ListStyleLivePreview extends StatelessWidget {
     // With a fixed column count, cap the preview at the width those columns
     // would actually occupy — otherwise two columns stretch across a desktop
     // window and look nothing like the real list.
-    final width = gridColumnCount * _maxCellWidth +
+    final width =
+        gridColumnCount * _maxCellWidth +
         (gridColumnCount - 1) * _cellSpacing +
         24.0;
     return Align(
@@ -117,12 +118,12 @@ class ListStyleLivePreview extends StatelessWidget {
   }
 
   Widget _item(int index) => EntryListItem(
-        series: mockSeries222,
-        isLibrary: true,
-        listStyle: style,
-        // Distinct per cell so the previews never collide with each other or
-        // with a real list item in a Hero transition.
-        heroTagPrefix: 'preview_${style.name}_$index',
-        previewEntry: _mockEntry,
-      );
+    series: mockSeries222,
+    isLibrary: true,
+    listStyle: style,
+    // Distinct per cell so the previews never collide with each other or
+    // with a real list item in a Hero transition.
+    heroTagPrefix: 'preview_${style.name}_$index',
+    previewEntry: _mockEntry,
+  );
 }

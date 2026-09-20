@@ -46,7 +46,10 @@ class LogoutDialog {
           children: [
             Text(
               'Are you sure you want to log out?',
-              style: AppTypography.sans(color: AppConstants.textColor, fontSize: 16),
+              style: AppTypography.sans(
+                color: AppConstants.textColor,
+                fontSize: 16,
+              ),
             ),
             const SizedBox(height: 16),
             Container(

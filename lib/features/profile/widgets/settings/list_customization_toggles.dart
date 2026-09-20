@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:mangabaka_app/core/constants/app_constants.dart';
 import 'package:mangabaka_app/core/localization/localization_service.dart';
 import 'package:mangabaka_app/core/settings/settings_manager.dart';
+import 'package:mangabaka_app/core/widgets/app_snack_bar.dart';
 import 'package:mangabaka_app/features/profile/widgets/dialogs/general_settings_dialogs.dart';
 import 'package:mangabaka_app/features/profile/widgets/settings/list_customization_scope.dart';
 import 'package:mangabaka_app/features/profile/widgets/settings/settings_divider.dart';
@@ -45,7 +46,6 @@ class ListSeparationSwitches extends StatelessWidget {
             }
           },
           isFirst: true,
-          iconColor: const Color(0xFFAC4BFF),
         ),
         const SettingsDivider(),
         SettingsSwitchItem(
@@ -60,7 +60,6 @@ class ListSeparationSwitches extends StatelessWidget {
             }
           },
           isLast: true,
-          iconColor: AppConstants.infoColor,
         ),
       ],
     );
@@ -90,7 +89,6 @@ class ProgressTrackingSwitches extends StatelessWidget {
           value: settings.showLibraryProgress,
           onChanged: settings.setShowLibraryProgress,
           isFirst: true,
-          iconColor: AppConstants.accentColor,
         ),
         // The progress-type row only applies when progress is shown, so it
         // collapses in and out rather than sitting there inert.
@@ -106,13 +104,13 @@ class ProgressTrackingSwitches extends StatelessWidget {
                   SettingsItem(
                     icon: Icons.menu_book_outlined,
                     title: l10n.translate('library_progress_type'),
-                    subtitle:
-                        GeneralSettingsDialogs.getLibraryProgressTypeName(
+                    subtitle: GeneralSettingsDialogs.getLibraryProgressTypeName(
                       settings.libraryProgressType,
                     ),
-                    onTap: () => GeneralSettingsDialogs
-                        .showLibraryProgressTypeSelectionDialog(context),
-                    iconColor: AppConstants.accentColor,
+                    onTap: () =>
+                        GeneralSettingsDialogs.showLibraryProgressTypeSelectionDialog(
+                          context,
+                        ),
                   ),
                 ],
               ],
@@ -126,7 +124,6 @@ class ProgressTrackingSwitches extends StatelessWidget {
           subtitle: l10n.translate('show_remaining_progress_subtitle'),
           value: settings.showRemainingProgress,
           onChanged: settings.setShowRemainingProgress,
-          iconColor: AppConstants.starColor,
         ),
         const SettingsDivider(),
         SettingsSwitchItem(
@@ -136,7 +133,6 @@ class ProgressTrackingSwitches extends StatelessWidget {
           value: settings.showQuickProgress,
           onChanged: settings.setShowQuickProgress,
           isLast: true,
-          iconColor: const Color(0xFF4FBEC4),
         ),
       ],
     );
@@ -162,13 +158,10 @@ class CopyToOtherListButton extends StatelessWidget {
     return OutlinedButton.icon(
       onPressed: () {
         scope.copyToOtherTab();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              l10n.translate(
-                toBrowse ? 'copied_to_browse' : 'copied_to_library',
-              ),
-            ),
+        AppSnackBar.show(
+          context,
+          l10n.translate(
+            toBrowse ? 'copied_to_browse' : 'copied_to_library',
           ),
         );
       },
@@ -182,9 +175,7 @@ class CopyToOtherListButton extends StatelessWidget {
           color: AppConstants.accentColor.withValues(alpha: 0.5),
         ),
         padding: const EdgeInsets.symmetric(vertical: 12),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
     );
   }

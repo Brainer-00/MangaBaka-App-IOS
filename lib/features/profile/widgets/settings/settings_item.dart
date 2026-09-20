@@ -5,9 +5,9 @@ import 'package:mangabaka_app/core/theme/app_typography.dart';
 
 /// A single settings row.
 ///
-/// Layout follows the design system's list idiom: the icon sits in its own
-/// rounded well so the row has an anchor on the left, the title is set in
-/// display caps, and the value/summary sits beneath it in muted sans.
+/// Layout follows the design system's list idiom: a bare muted glyph anchors
+/// the left edge, the title is set in display caps, and the value/summary sits
+/// beneath it in muted sans.
 class SettingsItem extends StatelessWidget {
   final IconData icon;
   final String title;
@@ -16,7 +16,6 @@ class SettingsItem extends StatelessWidget {
   final Widget? trailing;
   final bool isFirst;
   final bool isLast;
-  final Color? iconColor;
 
   const SettingsItem({
     super.key,
@@ -27,7 +26,6 @@ class SettingsItem extends StatelessWidget {
     this.trailing,
     this.isFirst = false,
     this.isLast = false,
-    this.iconColor,
   });
 
   @override
@@ -41,16 +39,11 @@ class SettingsItem extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 14.0),
       child: Row(
         children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: AppConstants.tertiaryBackground,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(icon, color: iconColor ?? AppConstants.accentColor, size: 20),
+          SizedBox(
+            width: 24,
+            child: Icon(icon, color: AppConstants.textMutedColor, size: 20),
           ),
-          const SizedBox(width: 14),
+          const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

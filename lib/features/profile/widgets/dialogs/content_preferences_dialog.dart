@@ -8,8 +8,12 @@ import 'package:mangabaka_app/core/utils/widget_utils.dart';
 class ContentPreferencesDialogs {
   static String getContentPreferencesText(List<String> prefs) {
     final l10n = LocalizationService();
-    if (prefs.isEmpty) { return l10n.translate('no_results'); }
-    if (prefs.length == 4) { return l10n.translate('all_ratings_hint'); }
+    if (prefs.isEmpty) {
+      return l10n.translate('no_results');
+    }
+    if (prefs.length == 4) {
+      return l10n.translate('all_ratings_hint');
+    }
     return prefs.map((s) => l10n.translate(s)).join(', ');
   }
 
@@ -172,16 +176,21 @@ class ContentPreferencesDialogs {
                                       value: isBlurred,
                                       onChanged: (val) {
                                         final newBlurred = List<String>.from(
-                                          SettingsManager().blurredContentRatings,
+                                          SettingsManager()
+                                              .blurredContentRatings,
                                         );
                                         if (val) {
                                           newBlurred.add(option);
                                         } else {
                                           newBlurred.remove(option);
                                         }
-                                        SettingsManager().setBlurredContentRatings(newBlurred);
+                                        SettingsManager()
+                                            .setBlurredContentRatings(
+                                              newBlurred,
+                                            );
                                       },
-                                      activeThumbColor: AppConstants.accentColor,
+                                      activeThumbColor:
+                                          AppConstants.accentColor,
                                       activeTrackColor: AppConstants.accentColor
                                           .withValues(alpha: 0.3),
                                     ),

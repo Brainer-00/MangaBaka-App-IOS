@@ -84,10 +84,31 @@ class AppTheme {
   }
 
   /// Flutter cannot disable tooltips outright, so "off" is manual triggering
-  /// plus a wait long enough never to elapse.
+  /// plus a wait long enough never to elapse. When enabled, snappy 350ms wait duration
+  /// with desktop styling.
   static TooltipThemeData _tooltip(bool showTooltips) => TooltipThemeData(
         triggerMode: showTooltips ? null : TooltipTriggerMode.manual,
-        waitDuration: showTooltips ? null : const Duration(days: 365),
+        waitDuration: showTooltips
+            ? const Duration(milliseconds: 350)
+            : const Duration(days: 365),
+        decoration: BoxDecoration(
+          color: AppConstants.secondaryBackground,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: AppConstants.borderColor),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.35),
+              blurRadius: 8,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        textStyle: AppTypography.sans(
+          color: AppConstants.textColor,
+          fontSize: 12,
+          fontWeight: FontWeight.w500,
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       );
 
   static DialogThemeData _dialog() => DialogThemeData(
@@ -228,6 +249,8 @@ class AppTheme {
           AppConstants.tertiaryBackground,
         ),
         trackOutlineColor: WidgetStateProperty.all(AppConstants.borderColor),
+        // The default hover/press halo around the thumb reads as a glow.
+        overlayColor: WidgetStateProperty.all(Colors.transparent),
       );
 
   static CheckboxThemeData _checkbox() => CheckboxThemeData(
@@ -249,7 +272,7 @@ class AppTheme {
         activeTrackColor: AppConstants.accentColor,
         inactiveTrackColor: AppConstants.tertiaryBackground,
         thumbColor: AppConstants.accentColor,
-        overlayColor: AppConstants.accentColor.withValues(alpha: 0.16),
+        overlayColor: Colors.transparent,
         valueIndicatorColor: AppConstants.accentColor,
         valueIndicatorTextStyle: AppTypography.display(
           color: AppConstants.onAccent,
@@ -278,6 +301,7 @@ class AppTheme {
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppConstants.denseRadius),
+          side: BorderSide(color: AppConstants.borderColor),
         ),
       );
 

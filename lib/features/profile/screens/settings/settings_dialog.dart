@@ -84,8 +84,10 @@ class SettingsDialogState extends State<SettingsDialog> {
           },
           child: Dialog(
             backgroundColor: AppConstants.primaryBackground,
-            insetPadding:
-                const EdgeInsets.symmetric(horizontal: 48, vertical: 32),
+            insetPadding: const EdgeInsets.symmetric(
+              horizontal: 48,
+              vertical: 32,
+            ),
             clipBehavior: Clip.antiAlias,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(AppConstants.largeRadius),

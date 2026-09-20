@@ -133,25 +133,30 @@ class ListStyleDialogs {
                   const SizedBox(height: 24),
                   SizedBox(
                     height: 200,
-                    child: ListView.separated(
-                      padding: const EdgeInsets.symmetric(horizontal: 24),
-                      scrollDirection: Axis.horizontal,
-                      itemCount: AppListStyle.values.length,
-                      separatorBuilder: (context, index) =>
-                          const SizedBox(width: 8),
-                      itemBuilder: (context, index) {
-                        final style = AppListStyle.values[index];
-                        final isSelected = currentValue == style;
+                    child: ScrollConfiguration(
+                      behavior: const ScrollBehavior().copyWith(
+                        scrollbars: false,
+                      ),
+                      child: ListView.separated(
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        scrollDirection: Axis.horizontal,
+                        itemCount: AppListStyle.values.length,
+                        separatorBuilder: (context, index) =>
+                            const SizedBox(width: 8),
+                        itemBuilder: (context, index) {
+                          final style = AppListStyle.values[index];
+                          final isSelected = currentValue == style;
 
-                        return ListStylePreviewItem(
-                          style: style,
-                          isSelected: isSelected,
-                          label: getListStyleName(style),
-                          onTap: () {
-                            onSelected(style);
-                          },
-                        );
-                      },
+                          return ListStylePreviewItem(
+                            style: style,
+                            isSelected: isSelected,
+                            label: getListStyleName(style),
+                            onTap: () {
+                              onSelected(style);
+                            },
+                          );
+                        },
+                      ),
                     ),
                   ),
                 ],

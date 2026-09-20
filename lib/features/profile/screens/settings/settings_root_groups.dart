@@ -30,7 +30,6 @@ List<Widget> buildSettingsGroups(
             ? 'general_settings_subtitle_mobile'
             : 'general_settings_subtitle',
       ),
-      iconColor: AppConstants.textColor,
       onTap: () => SettingsCategories.general(context, l10n),
     ),
     const SizedBox(height: 16),
@@ -38,7 +37,6 @@ List<Widget> buildSettingsGroups(
       icon: Icons.grid_view,
       title: l10n.translate('list_customization'),
       subtitle: l10n.translate('list_customization_subtitle'),
-      iconColor: AppConstants.infoColor,
       onTap: () => SettingsCategories.listCustomization(context, l10n),
     ),
     const SizedBox(height: 16),
@@ -46,7 +44,6 @@ List<Widget> buildSettingsGroups(
       icon: Icons.library_books_outlined,
       title: l10n.translate('content'),
       subtitle: l10n.translate('library_settings_subtitle'),
-      iconColor: AppConstants.starColor,
       onTap: () => SettingsCategories.content(context, l10n),
     ),
     const SizedBox(height: 16),
@@ -57,7 +54,6 @@ List<Widget> buildSettingsGroups(
         icon: Icons.person_outline,
         title: l10n.translate('account'),
         subtitle: l10n.translate('account_settings_subtitle'),
-        iconColor: AppConstants.accentColor,
         onTap: () => SettingsCategories.account(context, l10n, auth),
       ),
       const SizedBox(height: 16),
@@ -66,7 +62,6 @@ List<Widget> buildSettingsGroups(
       icon: Icons.code,
       title: l10n.translate('advanced_settings'),
       subtitle: l10n.translate('advanced_settings_subtitle'),
-      iconColor: AppConstants.errorColor,
       onTap: () => SettingsCategories.advanced(context, l10n),
     ),
     const SizedBox(height: 32),
@@ -76,7 +71,6 @@ List<Widget> buildSettingsGroups(
           icon: Icons.discord,
           title: l10n.translate('discord'),
           url: 'https://discord.gg/mangabaka',
-          iconColor: const Color(0xFF5865F2),
           isFirst: true,
         ),
         const SettingsDivider(),
@@ -84,7 +78,6 @@ List<Widget> buildSettingsGroups(
           icon: Icons.code,
           title: l10n.translate('github'),
           url: 'https://github.com/oazzies/MangaBaka-App',
-          iconColor: const Color(0xFFAC4BFF),
         ),
         const SettingsDivider(),
         SettingsItem(
@@ -92,12 +85,9 @@ List<Widget> buildSettingsGroups(
           title: l10n.translate('translation_credits'),
           onTap: () => Navigator.push(
             context,
-            MaterialPageRoute(
-              builder: (_) => const TranslationCreditsScreen(),
-            ),
+            MaterialPageRoute(builder: (_) => const TranslationCreditsScreen()),
           ),
           isLast: true,
-          iconColor: AppConstants.textColor,
         ),
       ],
     ),
@@ -110,19 +100,15 @@ Widget _category({
   required IconData icon,
   required String title,
   required String subtitle,
-  required Color iconColor,
   required VoidCallback onTap,
 }) {
   return SettingsGroup(
     children: [
-      SettingsItem(
+      SettingsCategoryRow(
         icon: icon,
         title: title,
         subtitle: subtitle,
         onTap: onTap,
-        isFirst: true,
-        isLast: true,
-        iconColor: iconColor,
       ),
     ],
   );
@@ -133,7 +119,6 @@ Widget _externalLink({
   required IconData icon,
   required String title,
   required String url,
-  required Color iconColor,
   bool isFirst = false,
 }) {
   return SettingsItem(
@@ -147,7 +132,6 @@ Widget _externalLink({
       size: 18,
     ),
     isFirst: isFirst,
-    iconColor: iconColor,
   );
 }
 

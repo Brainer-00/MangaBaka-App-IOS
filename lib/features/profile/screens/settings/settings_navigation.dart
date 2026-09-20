@@ -4,6 +4,36 @@ import 'package:mangabaka_app/features/profile/screens/settings/settings_dialog.
 import 'package:mangabaka_app/features/profile/screens/settings_category_screen.dart';
 import 'package:mangabaka_app/features/profile/screens/settings_screen.dart';
 
+/// A settings category's content, for a host that shows categories inline.
+class SettingsCategoryContent {
+  final String title;
+  final Widget content;
+
+  const SettingsCategoryContent({required this.title, required this.content});
+}
+
+/// Placed above a settings page that shows categories inline rather than
+/// navigating to them — the desktop settings page, whose categories open in
+/// its right-hand pane.
+///
+/// [showOrNavigate] hands categories to the nearest host instead of pushing a
+/// screen or a dialog page.
+class InlineSettingsHost extends InheritedWidget {
+  final ValueChanged<SettingsCategoryContent> onOpen;
+
+  const InlineSettingsHost({
+    super.key,
+    required this.onOpen,
+    required super.child,
+  });
+
+  static InlineSettingsHost? maybeOf(BuildContext context) =>
+      context.getInheritedWidgetOfExactType<InlineSettingsHost>();
+
+  @override
+  bool updateShouldNotify(InlineSettingsHost oldWidget) => false;
+}
+
 /// Opens a settings category the way the current layout calls for.
 ///
 /// Portrait pushes a full screen. Landscape keeps the user inside the settings
@@ -19,14 +49,16 @@ void showOrNavigate(
   Listenable? listenable,
   required List<Widget> Function(BuildContext) buildChildren,
 }) {
+  final host = InlineSettingsHost.maybeOf(context);
   final isLandscape =
+      host == null &&
       MediaQuery.orientationOf(context) == Orientation.landscape;
 
   Widget buildInner(BuildContext ctx) {
     final children = buildChildren(ctx);
     // In the dialog the category is already inside a scrolling shell with its
     // own header, so it contributes just the rows.
-    return isLandscape
+    return isLandscape || host != null
         ? Column(mainAxisSize: MainAxisSize.min, children: children)
         : SettingsCategoryScreen(title: title, children: children);
   }
@@ -37,6 +69,11 @@ void showOrNavigate(
           builder: (ctx, _) => buildInner(ctx),
         )
       : Builder(builder: buildInner);
+
+  if (host != null) {
+    host.onOpen(SettingsCategoryContent(title: title, content: content));
+    return;
+  }
 
   if (!isLandscape) {
     Navigator.push(context, MaterialPageRoute(builder: (_) => content));

@@ -34,8 +34,9 @@ class SettingsStepperRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final display =
-        (minLabel != null && value == min) ? minLabel! : value.toString();
+    final display = (minLabel != null && value == min)
+        ? minLabel!
+        : value.toString();
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),

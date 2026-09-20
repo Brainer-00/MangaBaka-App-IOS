@@ -39,17 +39,6 @@ class ListStylePreviewItem extends StatelessWidget {
                       : AppConstants.borderColor.withValues(alpha: 0.5),
                   width: isSelected ? 3 : 1,
                 ),
-                boxShadow: isSelected
-                    ? [
-                        BoxShadow(
-                          color: AppConstants.accentColor.withValues(
-                            alpha: 0.3,
-                          ),
-                          blurRadius: 8,
-                          spreadRadius: 2,
-                        ),
-                      ]
-                    : null,
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(
