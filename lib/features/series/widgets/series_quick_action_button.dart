@@ -1,4 +1,4 @@
-﻿import 'package:mangabaka_app/core/theme/app_typography.dart';
+import 'package:mangabaka_app/core/theme/app_typography.dart';
 import 'package:flutter/material.dart';
 import 'package:mangabaka_app/features/library/models/library_entry.dart';
 import 'package:mangabaka_app/features/library/services/library_service.dart';
@@ -7,6 +7,7 @@ import 'package:mangabaka_app/core/constants/app_constants.dart';
 import 'package:mangabaka_app/core/di/service_locator.dart';
 import 'package:mangabaka_app/core/localization/localization_service.dart';
 import 'package:mangabaka_app/core/utils/widget_utils.dart';
+import 'package:mangabaka_app/core/widgets/app_snack_bar.dart';
 
 class SeriesQuickActionButton extends StatefulWidget {
   final Series series;
@@ -113,11 +114,10 @@ class _SeriesQuickActionButtonState extends State<SeriesQuickActionButton> {
           _optimisticProgress = null;
         });
         widget.onOptimisticProgressChanged?.call(null);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(LocalizationService().translate('an_error_occurred')),
-            behavior: SnackBarBehavior.floating,
-          ),
+        AppSnackBar.show(
+          context,
+          LocalizationService().translate('an_error_occurred'),
+          isError: true,
         );
       }
     }

@@ -1,9 +1,10 @@
-﻿import 'package:mangabaka_app/core/theme/app_typography.dart';
+import 'package:mangabaka_app/core/theme/app_typography.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mangabaka_app/core/constants/app_constants.dart';
 import 'package:mangabaka_app/core/localization/localization_service.dart';
 import 'package:mangabaka_app/core/utils/widget_utils.dart';
+import 'package:mangabaka_app/core/widgets/app_snack_bar.dart';
 
 class DescriptionSection extends StatefulWidget {
   final String description;
@@ -115,8 +116,9 @@ class _DescriptionSectionState extends State<DescriptionSection> {
                     color: AppConstants.textMutedColor,
                     onPressed: () {
                       Clipboard.setData(ClipboardData(text: widget.description));
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(LocalizationService().translate('description_copied')), behavior: SnackBarBehavior.floating),
+                      AppSnackBar.show(
+                        context,
+                        LocalizationService().translate('description_copied'),
                       );
                     },
                   ),

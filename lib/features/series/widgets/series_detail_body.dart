@@ -36,7 +36,7 @@ class SeriesDetailBody extends StatelessWidget {
   /// Below this the mobile layout is used; above [_wideBreakpoint] the app bar
   /// also switches to its roomier arrangement.
   static const double _tabletBreakpoint = 600;
-  static const double _wideBreakpoint = 900;
+  static const double wideBreakpoint = 900;
 
   /// Content stops widening here so lines stay readable on a desktop window.
   static const double _maxContentWidth = 1400;
@@ -55,9 +55,17 @@ class SeriesDetailBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final width = MediaQuery.sizeOf(context).width;
-    final isWide = width > _wideBreakpoint;
-    final isTablet = width > _tabletBreakpoint && width <= _wideBreakpoint;
+    // The space this page actually has, not the window: on desktop it sits
+    // beside the sidebar, and the window width overstated it by the sidebar.
+    return LayoutBuilder(
+      builder: (context, constraints) =>
+          _build(context, constraints.maxWidth),
+    );
+  }
+
+  Widget _build(BuildContext context, double width) {
+    final isWide = width > wideBreakpoint;
+    final isTablet = width > _tabletBreakpoint && width <= wideBreakpoint;
 
     // Render from the Series we were handed on the very first frame — the
     // common navigation paths (search, browse, library, home) all pass a
@@ -165,6 +173,7 @@ class SeriesDetailBody extends StatelessWidget {
           covers: state.covers,
           related: state.related,
           similar: state.similar,
+          readersAlsoLike: state.readersAlsoLike,
           news: state.news,
           collections: state.collections,
           works: state.works,
@@ -187,6 +196,8 @@ class SeriesDetailBody extends StatelessWidget {
         onTabChanged: onTabChanged,
         onStateChanged: setState,
         onRatingChanged: setRating,
+        isAdding: state.isAdding,
+        onAdd: state.addSeriesToLibrary,
         onUpdateChapter: updateChapter,
         onUpdateVolume: updateVolume,
         onUpdateRating: updateRating,

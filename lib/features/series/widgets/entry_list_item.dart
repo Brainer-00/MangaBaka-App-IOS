@@ -12,6 +12,7 @@ import 'package:mangabaka_app/core/localization/localization_service.dart';
 import 'package:mangabaka_app/core/settings/settings_enums.dart';
 import 'package:mangabaka_app/core/di/service_locator.dart';
 import 'package:mangabaka_app/core/theme/app_typography.dart';
+import 'package:mangabaka_app/desktop/widgets/series_hover_preview.dart';
 
 class EntryListItem extends StatefulWidget {
   final Series series;
@@ -60,6 +61,9 @@ class _EntryListItemState extends State<EntryListItem> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.series.id != widget.series.id) {
       _updateEntryStream();
+    }
+    if (oldWidget.listStyle != widget.listStyle) {
+      setState(() {});
     }
   }
 
@@ -124,63 +128,66 @@ class _EntryListItemState extends State<EntryListItem> {
   ) {
     final isInLibrary = entry != null;
 
-    return Stack(
-      children: [
-        _buildContent(context, style, l10n, displayTitle, entry),
+    return SeriesHoverPreview(
+      series: widget.series,
+      child: Stack(
+        children: [
+          _buildContent(context, style, l10n, displayTitle, entry),
 
-        if (!style.isGrid && isInLibrary && (settings.showLibraryProgress || settings.showRemainingProgress))
-          Positioned(
-            bottom: style == AppListStyle.comfortable ? 6 : 4,
-            left:
-                (style == AppListStyle.minimalList
-                    ? 48.0
-                    : (style == AppListStyle.compact ? 60.0 : 72.0)) +
-                12,
-            right: 12,
-            child: _buildProgressBar(context, entry, style),
-          ),
-
-        if (!style.isGrid && settings.showQuickProgress)
-          Positioned(
-            bottom: style == AppListStyle.comfortable ? 12 : 8,
-            right: style == AppListStyle.comfortable ? 12 : 10,
-            child: SeriesQuickActionButton(
-              series: widget.series,
-              entry: entry,
-              onOptimisticProgressChanged: (val) {
-                setState(() {
-                  _optimisticProgress = val;
-                });
-              },
+          if (!style.isGrid && isInLibrary && (settings.showLibraryProgress || settings.showRemainingProgress))
+            Positioned(
+              bottom: style == AppListStyle.comfortable ? 6 : 4,
+              left:
+                  (style == AppListStyle.minimalList
+                      ? 48.0
+                      : (style == AppListStyle.compact ? 60.0 : 72.0)) +
+                  12,
+              right: 12,
+              child: _buildProgressBar(context, entry, style),
             ),
-          ),
 
-        if (widget.ranking != null)
-          Positioned(
-            top: 0,
-            left: 0,
-            child: Container(
-              decoration: BoxDecoration(
-                color: AppConstants.accentColor,
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(12),
-                  bottomRight: Radius.circular(12),
-                ),
-              ),
-              padding: const EdgeInsets.symmetric(
-                horizontal: 10,
-                vertical: 6,
-              ),
-              child: Text(
-                '${widget.ranking}',
-                style: AppTypography.display(
-                  color: AppConstants.onAccent,
-                  fontSize: 15,
-                ),
+          if (!style.isGrid && settings.showQuickProgress)
+            Positioned(
+              bottom: style == AppListStyle.comfortable ? 12 : 8,
+              right: style == AppListStyle.comfortable ? 12 : 10,
+              child: SeriesQuickActionButton(
+                series: widget.series,
+                entry: entry,
+                onOptimisticProgressChanged: (val) {
+                  setState(() {
+                    _optimisticProgress = val;
+                  });
+                },
               ),
             ),
-          ),
-      ],
+
+          if (widget.ranking != null)
+            Positioned(
+              top: 0,
+              left: 0,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: AppConstants.accentColor,
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(12),
+                    bottomRight: Radius.circular(12),
+                  ),
+                ),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
+                child: Text(
+                  '${widget.ranking}',
+                  style: AppTypography.display(
+                    color: AppConstants.onAccent,
+                    fontSize: 15,
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
     );
   }
 

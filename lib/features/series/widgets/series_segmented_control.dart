@@ -79,6 +79,9 @@ class _SeriesSegmentedControlState extends State<SeriesSegmentedControl>
         controller: _controller,
         isScrollable: true,
         tabAlignment: TabAlignment.start,
+        onTap: (index) {
+          widget.onTabChanged(SeriesSegmentedControl.tabs[index]);
+        },
         // The strip's own indicatorPadding already insets each pill by 5, so
         // the outer padding is reduced to match — clamped, because callers
         // (the wide layout) legitimately pass 0.

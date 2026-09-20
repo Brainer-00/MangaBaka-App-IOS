@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:mangabaka_app/features/library/constants/library_screen_constants.dart';
 import 'package:mangabaka_app/core/constants/app_constants.dart';
-import 'package:mangabaka_app/core/theme/app_typography.dart';
 import 'package:mangabaka_app/core/localization/localization_service.dart';
+import 'package:mangabaka_app/desktop/widgets/desktop_dropdown.dart';
 
 class StateSelectionSection extends StatefulWidget {
   final String? currentState;
@@ -46,84 +46,42 @@ class _StateSelectionSectionState extends State<StateSelectionSection> {
       listenable: LocalizationService(),
       builder: (context, _) {
         final l10n = LocalizationService();
+        final stateColor = AppConstants.getColorForState(activeState);
+        final onStateColor = AppConstants.getOnColorForState(activeState);
+
         return LayoutBuilder(
           builder: (context, constraints) {
-            return DropdownMenu<String>(
+            return DesktopDropdown<String>(
               key: ValueKey(activeState),
               width: constraints.maxWidth,
-              initialSelection: activeState,
-              requestFocusOnTap: false,
-              enableSearch: false,
-              enableFilter: false,
+              valueLabel: l10n.translate(activeState),
+              backgroundColor: stateColor,
+              menuBackgroundColor: AppConstants.secondaryBackground,
+              foregroundColor: onStateColor,
+              radius: AppConstants.pillRadius,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              leading: Icon(
+                _getIconForState(activeState),
+                color: onStateColor,
+                size: 20,
+              ),
+              selected: activeState,
               onSelected: (value) {
-                if (value != null && value != activeState) {
+                if (value != activeState) {
                   setState(() {
                     _tempState = value;
                   });
                   widget.onStateChanged(value);
                 }
               },
-              leadingIcon: Icon(
-                _getIconForState(activeState),
-                color: AppConstants.getOnColorForState(activeState),
-                size: 20,
-              ),
-              dropdownMenuEntries: LibraryScreenConstants.tabs.map((tab) {
-                final isSelected = activeState == tab.key;
-                return DropdownMenuEntry<String>(
+              items: LibraryScreenConstants.tabs.map((tab) {
+                return DesktopDropdownItem<String>(
                   value: tab.key,
                   label: l10n.translate(tab.key).toUpperCase(),
-                  leadingIcon: Icon(
-                    _getIconForState(tab.key),
-                    color: AppConstants.getColorForState(tab.key),
-                    size: 20,
-                  ),
-                  trailingIcon: isSelected 
-                      ? Icon(Icons.check, color: AppConstants.getColorForState(tab.key), size: 18)
-                      : null,
-                  style: MenuItemButton.styleFrom(
-                    foregroundColor: AppConstants.textColor,
-                    textStyle: AppTypography.display(fontSize: 13),
-                    backgroundColor: isSelected
-                        ? AppConstants.getColorForState(tab.key).withValues(alpha: 0.14)
-                        : null,
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                  ),
+                  icon: _getIconForState(tab.key),
+                  iconColor: AppConstants.getColorForState(tab.key),
                 );
               }).toList(),
-              inputDecorationTheme: InputDecorationTheme(
-                filled: true,
-                fillColor: AppConstants.getColorForState(activeState),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 12.0),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(AppConstants.pillRadius),
-                  borderSide: BorderSide.none,
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(AppConstants.pillRadius),
-                  borderSide: BorderSide.none,
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(AppConstants.pillRadius),
-                  borderSide: BorderSide.none,
-                ),
-              ),
-              trailingIcon: Icon(Icons.keyboard_arrow_down_rounded, color: AppConstants.getOnColorForState(activeState), size: 20),
-              selectedTrailingIcon: Icon(Icons.keyboard_arrow_up_rounded, color: AppConstants.getOnColorForState(activeState), size: 20),
-              textStyle: AppTypography.display(
-                color: AppConstants.getOnColorForState(activeState),
-                fontSize: 14,
-              ),
-              menuStyle: MenuStyle(
-                backgroundColor: WidgetStateProperty.all(AppConstants.secondaryBackground),
-                surfaceTintColor: WidgetStateProperty.all(Colors.transparent),
-                shape: WidgetStateProperty.all(
-                  RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12.0),
-                  ),
-                ),
-                padding: WidgetStateProperty.all(EdgeInsets.zero), // Removes the top/bottom gap!
-              ),
             );
           },
         );

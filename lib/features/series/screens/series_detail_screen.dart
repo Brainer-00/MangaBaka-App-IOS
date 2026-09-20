@@ -125,13 +125,17 @@ class SeriesDetailScreenState extends State<SeriesDetailScreen>
 
     // The fetch, by contrast, starts immediately: results that arrive during
     // the transition mean no skeleton is shown at all.
-    fetchFullData().then((_) {
-      _logger.info('Full data fetch complete for series: ${widget.series.id}');
-    }).catchError((Object e) {
-      _logger.severe(
-        'Full data fetch failed for series: ${widget.series.id}. Error: $e',
-      );
-    });
+    fetchFullData()
+        .then((_) {
+          _logger.info(
+            'Full data fetch complete for series: ${widget.series.id}',
+          );
+        })
+        .catchError((Object e) {
+          _logger.severe(
+            'Full data fetch failed for series: ${widget.series.id}. Error: $e',
+          );
+        });
   }
 
   @override
@@ -216,11 +220,13 @@ class SeriesDetailScreenState extends State<SeriesDetailScreen>
     _logger.info('Navigating to series by author: $authorName');
     Navigator.push(
       context,
-      AppTransitions.slideRight(BrowseResultsScreen(
-        sortType: authorName,
-        sortBy: 'popularity_desc',
-        staff: authorName,
-      )),
+      AppTransitions.slideRight(
+        BrowseResultsScreen(
+          sortType: authorName,
+          sortBy: 'popularity_desc',
+          staff: authorName,
+        ),
+      ),
     );
   }
 
@@ -228,11 +234,13 @@ class SeriesDetailScreenState extends State<SeriesDetailScreen>
     _logger.info('Navigating to series by publisher: $publisherName');
     Navigator.push(
       context,
-      AppTransitions.slideRight(BrowseResultsScreen(
-        sortType: publisherName,
-        sortBy: 'popularity_desc',
-        publisher: publisherName,
-      )),
+      AppTransitions.slideRight(
+        BrowseResultsScreen(
+          sortType: publisherName,
+          sortBy: 'popularity_desc',
+          publisher: publisherName,
+        ),
+      ),
     );
   }
 
@@ -266,39 +274,51 @@ class SeriesDetailScreenState extends State<SeriesDetailScreen>
             if (didPop) return;
             if (_filterDrawer.isOpen) _filterDrawer.close();
           },
-          child: Scaffold(
-            backgroundColor: AppConstants.primaryBackground,
-            body: Stack(
-              children: [
-                Positioned.fill(
-                  child: SeriesDetailBody(
-                    state: this,
-                    entryStream: _entryStream,
-                    settings: SettingsManager(),
-                    l10n: LocalizationService(),
-                    onRetry: _retryFetch,
-                    onTabChanged: _onTabChanged,
-                    onAuthorTap: _navigateToAuthorSeries,
-                    onPublisherTap: _navigateToPublisherSeries,
-                  ),
-                ),
-                // Positioned, like the body: a non-positioned child would
-                // make the Stack size itself to that child instead of to the
-                // incoming constraints, collapsing the page.
-                if (_filterDrawer.isOpen)
-                  Positioned.fill(
-                    child: SeriesFilterDrawer(
-                      controller: _filterDrawer,
-                      onSearch: executeSearchWithFilters,
+          // The wide layout carries its own add button in the sidebar; the FAB
+          // is the phone/tablet-portrait affordance only. Measured from the
+          // page's own constraints, as the body does, so the two always agree
+          // on which layout is showing (the desktop sidebar takes width too).
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final isWide =
+                  constraints.maxWidth > SeriesDetailBody.wideBreakpoint;
+              return Scaffold(
+                backgroundColor: AppConstants.primaryBackground,
+                body: Stack(
+                  children: [
+                    Positioned.fill(
+                      child: SeriesDetailBody(
+                        state: this,
+                        entryStream: _entryStream,
+                        settings: SettingsManager(),
+                        l10n: LocalizationService(),
+                        onRetry: _retryFetch,
+                        onTabChanged: _onTabChanged,
+                        onAuthorTap: _navigateToAuthorSeries,
+                        onPublisherTap: _navigateToPublisherSeries,
+                      ),
                     ),
-                  ),
-              ],
-            ),
-            floatingActionButton: SeriesDetailFAB(
-              entryStream: _entryStream,
-              isAdding: _isAdding,
-              onAdd: addSeriesToLibrary,
-            ),
+                    // Positioned, like the body: a non-positioned child would
+                    // make the Stack size itself to that child instead of to the
+                    // incoming constraints, collapsing the page.
+                    if (_filterDrawer.isOpen)
+                      Positioned.fill(
+                        child: SeriesFilterDrawer(
+                          controller: _filterDrawer,
+                          onSearch: executeSearchWithFilters,
+                        ),
+                      ),
+                  ],
+                ),
+                floatingActionButton: isWide
+                    ? null
+                    : SeriesDetailFAB(
+                        entryStream: _entryStream,
+                        isAdding: _isAdding,
+                        onAdd: addSeriesToLibrary,
+                      ),
+              );
+            },
           ),
         );
       },

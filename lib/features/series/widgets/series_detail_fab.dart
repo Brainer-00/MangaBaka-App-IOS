@@ -7,6 +7,47 @@ import 'package:mangabaka_app/core/utils/widget_utils.dart';
 import 'package:mangabaka_app/core/constants/app_constants.dart';
 import 'package:mangabaka_app/core/theme/app_typography.dart';
 
+/// Add-to-library for the wide (desktop) layout: a full-width button that sits
+/// in the sidebar under the information card, instead of floating over the
+/// page as a FAB does on a phone.
+///
+/// Shows only for a signed-in user whose series is not yet in the library,
+/// like the FAB; the caller decides where it goes.
+class SeriesAddToLibraryButton extends StatelessWidget {
+  final bool isAdding;
+  final VoidCallback onAdd;
+
+  const SeriesAddToLibraryButton({
+    super.key,
+    required this.isAdding,
+    required this.onAdd,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton.icon(
+        key: const Key('add_to_library_button'),
+        onPressed: isAdding ? null : onAdd,
+        icon: isAdding
+            ? SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: AppConstants.onAccent.withValues(alpha: 0.5),
+                ),
+              )
+            : const Icon(Icons.add_rounded, size: 18),
+        label: Text(
+          LocalizationService().translate('add_to_library').toUpperCase(),
+        ),
+      ),
+    );
+  }
+}
+
 class SeriesDetailFAB extends StatelessWidget {
   final Stream<LibraryEntry?>? entryStream;
   final bool isAdding;

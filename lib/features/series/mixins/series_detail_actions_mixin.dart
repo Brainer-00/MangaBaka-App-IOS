@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:mangabaka_app/core/constants/app_constants.dart';
+import 'package:mangabaka_app/core/widgets/app_snack_bar.dart';
 import 'package:mangabaka_app/core/localization/localization_service.dart';
 import 'package:mangabaka_app/features/series/models/series.dart';
 import 'package:mangabaka_app/features/library/services/library_service.dart';
@@ -33,8 +34,10 @@ mixin SeriesDetailActionsMixin<T extends StatefulWidget> on State<T> {
               await libraryService.updateLibraryEntryRating(series.id, rating);
             } catch (e) {
               if (mounted) {
-                ScaffoldMessenger.of(this.context).showSnackBar(
-                  SnackBar(content: Text(LocalizationService().translate('failed_to_update'))),
+                AppSnackBar.show(
+                  this.context,
+                  LocalizationService().translate('failed_to_update'),
+                  isError: true,
                 );
               }
             }
@@ -140,7 +143,7 @@ mixin SeriesDetailActionsMixin<T extends StatefulWidget> on State<T> {
         ),
       );
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.translate('no_sharing_link'))));
+      AppSnackBar.show(context, l10n.translate('no_sharing_link'));
     }
   }
 
@@ -244,8 +247,10 @@ mixin SeriesDetailActionsMixin<T extends StatefulWidget> on State<T> {
                 if (mounted) Navigator.pop(this.context);
               } catch (e) {
                 if (mounted) {
-                  ScaffoldMessenger.of(this.context).showSnackBar(
-                    SnackBar(content: Text(LocalizationService().translate('failed_to_delete'))),
+                  AppSnackBar.show(
+                    this.context,
+                    LocalizationService().translate('failed_to_delete'),
+                    isError: true,
                   );
                 }
               }
@@ -270,11 +275,11 @@ mixin SeriesDetailActionsMixin<T extends StatefulWidget> on State<T> {
 
   void copyToClipboard(String text) {
     Clipboard.setData(ClipboardData(text: text));
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(LocalizationService().translate('copied_to_clipboard').replaceAll('{text}', text)),
-      behavior: SnackBarBehavior.floating,
+    AppSnackBar.show(
+      context,
+      LocalizationService().translate('copied_to_clipboard').replaceAll('{text}', text),
       duration: const Duration(seconds: 2),
-    ));
+    );
   }
 
   Future<void> addSeriesToLibrary() async {
@@ -284,8 +289,10 @@ mixin SeriesDetailActionsMixin<T extends StatefulWidget> on State<T> {
       await libraryService.createLibraryEntry(series.id, SettingsManager().addLibraryDefaultTab);
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(LocalizationService().translate('failed_to_add'))),
+        AppSnackBar.show(
+          context,
+          LocalizationService().translate('failed_to_add'),
+          isError: true,
         );
       }
     } finally {

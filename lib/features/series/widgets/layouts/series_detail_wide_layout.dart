@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:mangabaka_app/core/constants/app_constants.dart';
+import 'package:mangabaka_app/core/di/service_locator.dart';
 import 'package:mangabaka_app/features/library/models/library_entry.dart';
+import 'package:mangabaka_app/features/profile/services/profile_auth_service.dart';
+import 'package:mangabaka_app/features/series/widgets/series_detail_fab.dart';
 import 'package:mangabaka_app/features/series/models/series.dart';
 import 'package:mangabaka_app/core/localization/localization_service.dart';
 import 'package:mangabaka_app/features/series/widgets/series_section_header.dart';
@@ -22,6 +25,8 @@ class SeriesDetailWideLayout extends StatelessWidget {
   final ValueChanged<String> onTabChanged;
   final Function(String) onStateChanged;
   final Function(int) onRatingChanged;
+  final bool isAdding;
+  final VoidCallback onAdd;
   final VoidCallback onUpdateChapter;
   final VoidCallback onUpdateVolume;
   final VoidCallback onUpdateRating;
@@ -40,6 +45,8 @@ class SeriesDetailWideLayout extends StatelessWidget {
     required this.onTabChanged,
     required this.onStateChanged,
     required this.onRatingChanged,
+    required this.isAdding,
+    required this.onAdd,
     required this.onUpdateChapter,
     required this.onUpdateVolume,
     required this.onUpdateRating,
@@ -49,7 +56,7 @@ class SeriesDetailWideLayout extends StatelessWidget {
   });
 
   static const double _hPadding = 40.0;
-  static const double _sidebarWidth = 240.0;
+  static const double _sidebarWidth = 272.0;
   static const double _columnGap = 44.0;
 
   @override
@@ -102,6 +109,12 @@ class SeriesDetailWideLayout extends StatelessWidget {
                   onAuthorTap: onAuthorTap,
                   onPublisherTap: onPublisherTap,
                 ),
+                // Only a signed-in user can add, and only what is not yet in
+                // their library — the same gate the phone's FAB applies.
+                if (entry == null && getIt<ProfileAuthService>().isLoggedIn) ...[
+                  const SizedBox(height: 18),
+                  SeriesAddToLibraryButton(isAdding: isAdding, onAdd: onAdd),
+                ],
               ],
             ),
           ),

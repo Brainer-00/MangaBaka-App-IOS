@@ -101,6 +101,12 @@ class MockLibraryService extends Fake implements LibraryService {
 class MockProfileAuthService extends ChangeNotifier implements ProfileAuthService {
   bool _isLoggedIn = false;
   @override
+  final ValueNotifier<bool> awaitingBrowser = ValueNotifier(false);
+  @override
+  void cancelLogin() {}
+  @override
+  Future<void> reopenBrowser() async {}
+  @override
   bool get isLoggedIn => _isLoggedIn;
   set isLoggedIn(bool value) {
     _isLoggedIn = value;
@@ -190,11 +196,35 @@ void main() {
     expect(mockSeriesService.fetchSeriesCalled, isTrue);
   });
 
-  testWidgets('SeriesDetailScreen allows adding to library when logged in', (WidgetTester tester) async {
+  testWidgets('SeriesDetailScreen allows adding to library when logged in (wide: sidebar button, no FAB)', (WidgetTester tester) async {
     mockAuthService.isLoggedIn = true;
     
     // Set a large viewport for widget tests
     tester.view.physicalSize = const Size(1200, 1600);
+    tester.view.devicePixelRatio = 1.0;
+    await tester.pump();
+    addTearDown(() => tester.view.reset());
+    
+    await tester.pumpWidget(createWidgetUnderTest());
+    await tester.pumpAndSettle();
+    
+    final fabFinder = find.byKey(const Key('add_to_library_button'));
+    expect(find.byKey(const Key('add_to_library_fab')), findsNothing);
+    expect(fabFinder, findsOneWidget);
+    
+    // Use standard tap instead of tapAt to be more robust
+    await tester.tap(fabFinder);
+    await tester.pump();
+    await tester.pumpAndSettle();
+    
+    expect(mockLibraryService.createCalled, isTrue);
+  });
+
+  testWidgets('SeriesDetailScreen allows adding to library when logged in (phone: FAB)', (WidgetTester tester) async {
+    mockAuthService.isLoggedIn = true;
+    
+    // Set a large viewport for widget tests
+    tester.view.physicalSize = const Size(500, 1600);
     tester.view.devicePixelRatio = 1.0;
     await tester.pump();
     addTearDown(() => tester.view.reset());

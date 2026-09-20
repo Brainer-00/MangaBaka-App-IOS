@@ -23,6 +23,7 @@ class SeriesDetailTabContent extends StatelessWidget {
   final List<SeriesCover>? covers;
   final List<Series>? related;
   final List<Series>? similar;
+  final List<Series>? readersAlsoLike;
   final List<News>? news;
   final List<SeriesCollection>? collections;
   final List<SeriesWork>? works;
@@ -40,6 +41,7 @@ class SeriesDetailTabContent extends StatelessWidget {
     this.covers,
     this.related,
     this.similar,
+    this.readersAlsoLike,
     this.news,
     this.collections,
     this.works,
@@ -71,6 +73,7 @@ class SeriesDetailTabContent extends StatelessWidget {
       case 'Similar':
         return SeriesSimilarTab(
           similar: similar,
+          readersAlsoLike: readersAlsoLike,
           l10n: l10n,
           horizontalPadding: tabPadding,
           currentSeriesId: series.id,
@@ -80,7 +83,11 @@ class SeriesDetailTabContent extends StatelessWidget {
       case 'Collections':
         return SeriesCollectionsTab(collections: collections, horizontalPadding: tabPadding);
       case 'Works':
-        return SeriesWorksTab(works: works, horizontalPadding: tabPadding);
+        return SeriesWorksTab(
+          works: works,
+          horizontalPadding: tabPadding,
+          fallbackCoverUrl: series.coverUrl,
+        );
       case 'Info':
       default:
         return SeriesDetailsGrid(
