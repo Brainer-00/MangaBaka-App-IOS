@@ -239,15 +239,8 @@ class _SeriesPreviewOverlayState extends State<_SeriesPreviewOverlay>
 
   String _capitalizeGenre(String text) {
     if (text.isEmpty) return text;
-    return text.split(' ').map((word) {
-      if (word.isEmpty) return word;
-      if (word.contains('-')) {
-        return word.split('-').map((part) =>
-          part.isNotEmpty ? '${part[0].toUpperCase()}${part.substring(1).toLowerCase()}' : ''
-        ).join('-');
-      }
-      return '${word[0].toUpperCase()}${word.substring(1).toLowerCase()}';
-    }).join(' ');
+    final formatted = text.replaceAll('_', ' ');
+    return '${formatted[0].toUpperCase()}${formatted.substring(1)}';
   }
 
   @override
