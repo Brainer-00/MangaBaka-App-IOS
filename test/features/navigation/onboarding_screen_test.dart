@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mangabaka_app/desktop/desktop_layout.dart';
 import 'package:mangabaka_app/features/navigation/screens/onboarding_screen.dart';
 import 'package:mangabaka_app/core/di/service_locator.dart';
 import 'package:mangabaka_app/features/profile/services/profile_auth_service.dart';
@@ -20,6 +21,8 @@ class MockProfileAuthService extends Fake implements ProfileAuthService {
 
 void main() {
   setUp(() async {
+    // These tests cover the phone flow whatever host they run on.
+    DesktopLayout.debugOverride = false;
     await resetServiceLocator();
     getIt.registerSingleton<LoggingService>(LoggingService());
     getIt.registerSingleton<AppDatabase>(AppDatabase.forTesting(NativeDatabase.memory()));
@@ -29,6 +32,7 @@ void main() {
   });
 
   tearDown(() async {
+    DesktopLayout.debugOverride = null;
     await getIt<AppDatabase>().close();
     await resetServiceLocator();
   });
@@ -68,5 +72,20 @@ void main() {
     await tester.tap(skipButton);
     await tester.pump();
     
+  });
+
+  testWidgets('desktop onboarding lists the steps and skips the camera step',
+      (WidgetTester tester) async {
+    DesktopLayout.debugOverride = true;
+    tester.view.physicalSize = const Size(1040, 720);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+
+    await tester.pumpWidget(createWidgetUnderTest());
+    await tester.pump();
+
+    expect(find.text('ONBOARDING_WELCOME_TITLE'), findsOneWidget);
+    expect(find.text('ONBOARDING_LOGIN_TITLE'), findsOneWidget);
+    expect(find.text('ONBOARDING_CAMERA_TITLE'), findsNothing);
   });
 }

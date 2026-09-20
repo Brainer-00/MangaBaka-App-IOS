@@ -43,17 +43,10 @@ class OnboardingHeroLayout extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             MbEntrance(
-              child: Container(
-                padding: EdgeInsets.all(isShort ? 16 : 24),
-                decoration: BoxDecoration(
-                  color: AppConstants.accentColor.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(AppConstants.largeRadius),
-                ),
-                child: Icon(
-                  icon,
-                  size: isShort ? 48 : 64,
-                  color: AppConstants.accentColor,
-                ),
+              child: Icon(
+                icon,
+                size: isShort ? 56 : 72,
+                color: AppConstants.accentColor,
               ),
             ),
             SizedBox(height: isShort ? 24 : 40),
