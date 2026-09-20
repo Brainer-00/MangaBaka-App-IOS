@@ -4,6 +4,7 @@ class AppConstants {
   static const String appName = 'MangaBaka';
   static const String appVersion = '0.3.1';
   static const String baseApiUrl = 'https://api.mangabaka.org/v1';
+  static const String baseApiUrlV2 = 'https://api.mangabaka.org/v2';
 
   static const String githubOwner = 'Oazzies';
   static const String githubRepo = 'MangaBaka-App';

@@ -15,6 +15,7 @@ mixin SeriesDetailDataMixin<T extends StatefulWidget> on State<T> {
   List<SeriesCover>? covers;
   List<Series>? related;
   List<Series>? similar;
+  List<Series>? readersAlsoLike;
   List<News>? news;
   List<SeriesCollection>? collections;
   List<SeriesWork>? works;
@@ -67,6 +68,18 @@ mixin SeriesDetailDataMixin<T extends StatefulWidget> on State<T> {
           }
           break;
         case 'Similar':
+          // The two lists are independent requests: readers-also-like is a
+          // separate (beta) endpoint and must never hold up, or take down,
+          // the tag-based list that has always been here.
+          if (readersAlsoLike == null) {
+            seriesService.fetchSeriesReadersAlsoLike(id).then((data) {
+              if (mounted) setState(() => readersAlsoLike = data);
+            }).catchError((Object e) {
+              seriesService.logger
+                  .warning('Error fetching readers-also-like: $e');
+              if (mounted) setState(() => readersAlsoLike = const []);
+            });
+          }
           if (similar == null) {
             final data = await seriesService.fetchSeriesSimilar(id);
             if (mounted) setState(() => similar = data);

@@ -76,6 +76,31 @@ mixin SeriesMetadataMixin {
         ),
       );
 
+  /// Collaborative-filtering recommendations: titles that readers of this one
+  /// also have in their libraries.
+  ///
+  /// Unlike [fetchSeriesSimilar], which ranks by shared tags and creators,
+  /// this ranks by shared *readers*, so the two lists surface different
+  /// titles. v2-only; the lean shape (titles as an array) is the one
+  /// [Series.fromSimilarJson] already normalises. Ordered best-first by the
+  /// server.
+  Future<List<Series>> fetchSeriesReadersAlsoLike(String id) async {
+    final prefs = SettingsManager().contentPreferences;
+    return _allowedByContentRating(
+      await _fetchList(
+        id,
+        'readers-also-like',
+        (item) {
+          final nested = item['series'];
+          if (nested is! Map) return null;
+          return Series.fromSimilarJson(nested.cast<String, dynamic>());
+        },
+        params: {'limit': 24, 'content_rating': prefs},
+        base: AppConstants.baseApiUrlV2,
+      ),
+    );
+  }
+
   /// Fetches `/series/{id}/{path}` and maps its `data` array through
   /// [fromJson], skipping items that fail to parse.
   Future<List<T>> _fetchList<T>(
@@ -83,10 +108,11 @@ mixin SeriesMetadataMixin {
     String path,
     T? Function(Map<String, dynamic> item) fromJson, {
     Map<String, dynamic>? params,
+    String base = AppConstants.baseApiUrl,
   }) async {
     try {
       return await metadataApi.getJson(
-        ApiClient.uri('${AppConstants.baseApiUrl}/series/$id/$path', params),
+        ApiClient.uri('$base/series/$id/$path', params),
         operation: 'fetch series $path',
         parse: (json) => parseDataList(json, (item) {
           try {

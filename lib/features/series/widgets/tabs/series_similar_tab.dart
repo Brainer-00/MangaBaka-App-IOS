@@ -13,8 +13,14 @@ import 'package:mangabaka_app/features/series/services/series_service.dart';
 import 'package:mangabaka_app/core/di/service_locator.dart';
 import 'package:mangabaka_app/core/widgets/dynamic_row_height_grid.dart';
 
+/// The Similar tab: titles alike by tags and creators, then — as a second
+/// section — titles that readers of this series also keep in their libraries.
+///
+/// The two lists load independently. The readers list is a separate beta
+/// endpoint, so it appears when (and only if) it has something to show.
 class SeriesSimilarTab extends StatelessWidget {
   final List<Series>? similar;
+  final List<Series>? readersAlsoLike;
   final LocalizationService l10n;
   final double horizontalPadding;
   final String? currentSeriesId;
@@ -22,10 +28,19 @@ class SeriesSimilarTab extends StatelessWidget {
   const SeriesSimilarTab({
     super.key,
     required this.similar,
+    this.readersAlsoLike,
     required this.l10n,
     this.horizontalPadding = 16.0,
     this.currentSeriesId,
   });
+
+  List<Series> _dedupe(List<Series> source) {
+    final unique = <String, Series>{};
+    for (final s in source) {
+      if (s.id != currentSeriesId) unique[s.id] = s;
+    }
+    return unique.values.toList();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -36,15 +51,18 @@ class SeriesSimilarTab extends StatelessWidget {
       );
     }
 
-    final unique = <String, Series>{};
-    for (final s in similar!) {
-      if (s.id != currentSeriesId) {
-        unique[s.id] = s;
-      }
-    }
-    final filtered = unique.values.toList();
+    final similarList = _dedupe(similar!);
+    final readersList = _dedupe(readersAlsoLike ?? const []);
 
-    if (filtered.isEmpty) {
+    if (similarList.isEmpty && readersList.isEmpty) {
+      // Readers-also-like may still be on its way; do not declare the tab
+      // empty until it has answered.
+      if (readersAlsoLike == null) {
+        return const Padding(
+          padding: EdgeInsets.all(32.0),
+          child: Center(child: CircularProgressIndicator()),
+        );
+      }
       return Padding(
         padding: const EdgeInsets.all(32.0),
         child: Center(child: Text(l10n.translate('no_similar_series'))),
@@ -62,33 +80,41 @@ class SeriesSimilarTab extends StatelessWidget {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SizedBox(
-                width: double.infinity,
-                child: Stack(
-                  alignment: Alignment.centerLeft,
-                  children: [
-                    SeriesSectionHeader(title: l10n.translate('tab_similar')),
-                    Positioned(
-                      right: 0,
-                      top: -12,
-                      child: WidgetUtils.tooltip(
-                        message: l10n.translate('toggle_layout'),
-                        child: IconButton(
+              if (similarList.isNotEmpty)
+                _section(
+                  context,
+                  title: l10n.translate('tab_similar'),
+                  series: similarList,
+                  style: style,
+                  // Distinct per section: the same series can appear in both
+                  // lists, and a Hero tag must be unique within a route.
+                  heroTagPrefix: 'similar',
+                  // One layout switch for the whole tab, on the first header.
+                  toggle: IconButton(
+                    icon: Icon(style.next.icon, color: AppConstants.textColor),
+                    onPressed: () => settings.setSimilarListStyle(style.next),
+                  ),
+                ),
+              if (readersList.isNotEmpty) ...[
+                if (similarList.isNotEmpty) const SizedBox(height: 32),
+                _section(
+                  context,
+                  title: l10n.translate('readers_also_like'),
+                  series: readersList,
+                  style: style,
+                  heroTagPrefix: 'readers',
+                  toggle: similarList.isEmpty
+                      ? IconButton(
                           icon: Icon(
                             style.next.icon,
                             color: AppConstants.textColor,
                           ),
-                          onPressed: () => settings.setSimilarListStyle(style.next),
-                        ),
-                      ),
-                    ),
-                  ],
+                          onPressed: () =>
+                              settings.setSimilarListStyle(style.next),
+                        )
+                      : null,
                 ),
-              ),
-              if (style.isGrid)
-                _buildGrid(context, filtered, style)
-              else
-                _buildList(context, filtered, style),
+              ],
             ],
           );
         },
@@ -96,7 +122,45 @@ class SeriesSimilarTab extends StatelessWidget {
     );
   }
 
-  Widget _buildList(BuildContext context, List<Series> series, AppListStyle style) {
+  Widget _section(
+    BuildContext context, {
+    required String title,
+    required List<Series> series,
+    required AppListStyle style,
+    required String heroTagPrefix,
+    Widget? toggle,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: double.infinity,
+          child: Stack(
+            alignment: Alignment.centerLeft,
+            children: [
+              SeriesSectionHeader(title: title),
+              if (toggle != null)
+                Positioned(
+                  right: 0,
+                  top: -12,
+                  child: WidgetUtils.tooltip(
+                    message: l10n.translate('toggle_layout'),
+                    child: toggle,
+                  ),
+                ),
+            ],
+          ),
+        ),
+        if (style.isGrid)
+          _buildGrid(context, series, style, heroTagPrefix)
+        else
+          _buildList(context, series, style, heroTagPrefix),
+      ],
+    );
+  }
+
+  Widget _buildList(BuildContext context, List<Series> series,
+      AppListStyle style, String heroTagPrefix) {
     // Lay out items directly in a Column rather than a nested non-scrolling
     // ListView: inside the detail screen's AnimatedSwitcher transition the
     // ListView's overscroll viewport can be painted before layout completes,
@@ -113,13 +177,13 @@ class SeriesSimilarTab extends StatelessWidget {
                 Navigator.of(context).push(
                   AppTransitions.slideUp(SeriesDetailScreen(
                     series: s,
-                    heroTagPrefix: 'similar',
+                    heroTagPrefix: heroTagPrefix,
                   )),
                 );
               },
               child: EntryListItem(
                 series: s,
-                heroTagPrefix: 'similar',
+                heroTagPrefix: heroTagPrefix,
                 listStyle: style,
               ),
             ),
@@ -128,7 +192,8 @@ class SeriesSimilarTab extends StatelessWidget {
     );
   }
 
-  Widget _buildGrid(BuildContext context, List<Series> series, AppListStyle style) {
+  Widget _buildGrid(BuildContext context, List<Series> series,
+      AppListStyle style, String heroTagPrefix) {
     final seriesService = getIt<SeriesService>();
     final isCompactGrid = style == AppListStyle.compactGrid;
 
@@ -151,13 +216,13 @@ class SeriesSimilarTab extends StatelessWidget {
                   Navigator.of(context).push(
                     AppTransitions.slideUp(SeriesDetailScreen(
                       series: s,
-                      heroTagPrefix: 'similar',
+                      heroTagPrefix: heroTagPrefix,
                     )),
                   );
                 },
                 child: EntryListItem(
                   series: s,
-                  heroTagPrefix: 'similar',
+                  heroTagPrefix: heroTagPrefix,
                   listStyle: style,
                 ),
               ),
@@ -186,13 +251,13 @@ class SeriesSimilarTab extends StatelessWidget {
                 Navigator.of(context).push(
                   AppTransitions.slideUp(SeriesDetailScreen(
                     series: s,
-                    heroTagPrefix: 'similar',
+                    heroTagPrefix: heroTagPrefix,
                   )),
                 );
               },
               child: EntryListItem(
                 series: s,
-                heroTagPrefix: 'similar',
+                heroTagPrefix: heroTagPrefix,
                 listStyle: style,
               ),
             ),
