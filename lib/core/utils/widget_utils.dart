@@ -37,9 +37,14 @@ class WidgetUtils {
   }) {
     if (url.isEmpty) {
       final iconSize = (width != null && width.isFinite) ? width : 24.0;
-      return errorWidget ?? Icon(Icons.broken_image, size: iconSize, color: AppConstants.textMutedColor);
+      return errorWidget ??
+          Icon(
+            Icons.broken_image,
+            size: iconSize,
+            color: AppConstants.textMutedColor,
+          );
     }
-    
+
     final Widget image = url.startsWith('assets/')
         ? Image.asset(
             url,
@@ -48,24 +53,37 @@ class WidgetUtils {
             fit: fit,
             errorBuilder: (context, error, stackTrace) {
               final iconSize = (width != null && width.isFinite) ? width : 24.0;
-              return errorWidget ?? Icon(Icons.broken_image, size: iconSize, color: AppConstants.textMutedColor);
+              return errorWidget ??
+                  Icon(
+                    Icons.broken_image,
+                    size: iconSize,
+                    color: AppConstants.textMutedColor,
+                  );
             },
           )
         : CachedNetworkImage(
             imageUrl: url,
+            httpHeaders: const {'User-Agent': AppConstants.userAgent},
             width: width,
             height: height,
             fit: fit,
             memCacheWidth: memCacheWidth,
             memCacheHeight: memCacheHeight,
-            placeholder: (context, url) => placeholder ?? Container(color: AppConstants.secondaryBackground),
+            placeholder: (context, url) =>
+                placeholder ??
+                Container(color: AppConstants.secondaryBackground),
             errorWidget: (context, url, error) {
               // Surface the failing host + error so image outages (dead CDN,
               // TLS handshake, cleartext block, rate limit) are diagnosable from
               // the in-app log rather than a silent broken-image icon.
               LoggingService.logger.warning('Image load failed: $url — $error');
               final iconSize = (width != null && width.isFinite) ? width : 24.0;
-              return errorWidget ?? Icon(Icons.broken_image, size: iconSize, color: AppConstants.textMutedColor);
+              return errorWidget ??
+                  Icon(
+                    Icons.broken_image,
+                    size: iconSize,
+                    color: AppConstants.textMutedColor,
+                  );
             },
             fadeOutDuration: const Duration(milliseconds: 300),
             fadeInDuration: const Duration(milliseconds: 300),
@@ -79,7 +97,12 @@ class WidgetUtils {
     );
   }
 
-  static Widget chipWrap(String label, List<String> items, {Color? color, Function(String)? onChipTap}) {
+  static Widget chipWrap(
+    String label,
+    List<String> items, {
+    Color? color,
+    Function(String)? onChipTap,
+  }) {
     if (items.isEmpty) return const SizedBox.shrink();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -98,11 +121,13 @@ class WidgetUtils {
           spacing: 10,
           runSpacing: 10,
           children: items
-              .map((e) => ChipBase(
-                    backgroundColor: color,
-                    label: SelectableText(e),
-                    onTap: onChipTap != null ? () => onChipTap(e) : null,
-                  ))
+              .map(
+                (e) => ChipBase(
+                  backgroundColor: color,
+                  label: SelectableText(e),
+                  onTap: onChipTap != null ? () => onChipTap(e) : null,
+                ),
+              )
               .toList(),
         ),
         const SizedBox(height: 16),
@@ -139,9 +164,12 @@ class WidgetUtils {
                 final uri = Uri.parse(l);
                 final domain = uri.host.replaceFirst('www.', '');
                 displayName = domain.split('.').first;
-                displayName = displayName[0].toUpperCase() + displayName.substring(1);
-                
-                final langMatch = RegExp(r'\/([a-z]{2})\/').firstMatch(uri.path);
+                displayName =
+                    displayName[0].toUpperCase() + displayName.substring(1);
+
+                final langMatch = RegExp(
+                  r'\/([a-z]{2})\/',
+                ).firstMatch(uri.path);
                 if (langMatch != null) {
                   language = langMatch.group(1)!.toUpperCase();
                 }
@@ -159,7 +187,8 @@ class WidgetUtils {
             if (url.isEmpty) return const SizedBox.shrink();
             final uri = Uri.parse(url);
             final domain = uri.host.replaceFirst('www.', '');
-            final faviconUrl = 'https://www.google.com/s2/favicons?domain=$domain&sz=64';
+            final faviconUrl =
+                'https://www.google.com/s2/favicons?domain=$domain&sz=64';
 
             return _HoverableLinkChip(
               uri: uri,
@@ -180,11 +209,7 @@ class AppTooltip extends StatelessWidget {
   final String message;
   final Widget child;
 
-  const AppTooltip({
-    super.key,
-    required this.message,
-    required this.child,
-  });
+  const AppTooltip({super.key, required this.message, required this.child});
 
   @override
   Widget build(BuildContext context) {
@@ -192,10 +217,7 @@ class AppTooltip extends StatelessWidget {
       listenable: SettingsManager(),
       builder: (context, _) {
         if (!SettingsManager().showTooltips) return child;
-        return Tooltip(
-          message: message,
-          child: child,
-        );
+        return Tooltip(message: message, child: child);
       },
     );
   }
@@ -247,7 +269,11 @@ class _HoverableLinkChip extends StatelessWidget {
                       url: faviconUrl,
                       width: 18,
                       height: 18,
-                      errorWidget: Icon(Icons.link, size: 18, color: AppConstants.textMutedColor),
+                      errorWidget: Icon(
+                        Icons.link,
+                        size: 18,
+                        color: AppConstants.textMutedColor,
+                      ),
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -262,10 +288,16 @@ class _HoverableLinkChip extends StatelessWidget {
                   if (language?.isNotEmpty ?? false) ...[
                     const SizedBox(width: 8),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 3,
+                      ),
                       decoration: BoxDecoration(
                         color: AppConstants.tertiaryBackground,
-                        border: Border.all(color: AppConstants.borderColor, width: 1),
+                        border: Border.all(
+                          color: AppConstants.borderColor,
+                          width: 1,
+                        ),
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: Text(

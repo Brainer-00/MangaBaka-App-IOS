@@ -78,6 +78,12 @@ class NewsListItem extends StatelessWidget {
                       fontWeight: FontWeight.w500,
                     ),
                   ),
+                  const SizedBox(width: 8),
+                  Icon(
+                    Icons.open_in_new_rounded,
+                    size: 14,
+                    color: AppConstants.textMutedColor,
+                  ),
                 ],
               ),
               const SizedBox(height: 12),

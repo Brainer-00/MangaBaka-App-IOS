@@ -5,6 +5,7 @@ import 'package:mangabaka_app/features/series/models/series.dart';
 import 'package:mangabaka_app/features/series/screens/series_detail_screen.dart';
 import 'package:mangabaka_app/core/settings/settings_manager.dart';
 import 'package:mangabaka_app/core/utils/widget_utils.dart';
+import 'package:mangabaka_app/desktop/widgets/series_hover_preview.dart';
 
 class ReferencedListItem extends StatelessWidget {
   final Series series;
@@ -21,15 +22,18 @@ class ReferencedListItem extends StatelessWidget {
     final settings = SettingsManager();
     final displayTitle = series.getDisplayTitle(settings.defaultTitleLanguage);
 
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => SeriesDetailScreen(series: series),
-          ),
-        );
-      },
+    return SeriesHoverPreview(
+      series: series,
+      child: GestureDetector(
+        onTap: () {
+          SeriesHoverPreviewController.instance.hide();
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => SeriesDetailScreen(series: series),
+            ),
+          );
+        },
       child: SizedBox(
         width: compact ? 90 : 120,
         child: Column(
@@ -62,6 +66,7 @@ class ReferencedListItem extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }

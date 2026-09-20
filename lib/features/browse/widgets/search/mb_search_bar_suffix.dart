@@ -8,7 +8,8 @@ class MBSearchBarSuffix extends StatelessWidget {
   final String controllerText;
   final VoidCallback onClear;
   final VoidCallback? onScanTap;
-  final VoidCallback onFilterTap;
+  /// Null hides the filter button.
+  final VoidCallback? onFilterTap;
   final SearchFilters currentFilters;
 
   const MBSearchBarSuffix({
@@ -16,7 +17,7 @@ class MBSearchBarSuffix extends StatelessWidget {
     required this.controllerText,
     required this.onClear,
     this.onScanTap,
-    required this.onFilterTap,
+    this.onFilterTap,
     required this.currentFilters,
   });
 
@@ -53,6 +54,7 @@ class MBSearchBarSuffix extends StatelessWidget {
             ),
             const SizedBox(width: 4),
           ],
+          if (onFilterTap != null)
           WidgetUtils.tooltip(
             message: LocalizationService().translate('filters'),
             child: IconButton(

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:mangabaka_app/core/localization/localization_service.dart';
 import 'package:mangabaka_app/core/logging/logging_service.dart';
+import 'package:mangabaka_app/core/widgets/app_snack_bar.dart';
 import 'package:mangabaka_app/features/browse/screens/barcode_scanner_screen.dart';
 import 'package:permission_handler/permission_handler.dart';
 
@@ -71,16 +72,16 @@ class CameraScanLauncher {
     required bool offerSettings,
   }) {
     final l10n = LocalizationService();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(l10n.translate('camera_permission_denied')),
-        action: offerSettings
-            ? SnackBarAction(
-                label: l10n.translate('settings'),
-                onPressed: openAppSettings,
-              )
-            : null,
-      ),
+    AppSnackBar.show(
+      context,
+      l10n.translate('camera_permission_denied'),
+      isError: true,
+      action: offerSettings
+          ? SnackBarAction(
+              label: l10n.translate('settings'),
+              onPressed: openAppSettings,
+            )
+          : null,
     );
   }
 }
