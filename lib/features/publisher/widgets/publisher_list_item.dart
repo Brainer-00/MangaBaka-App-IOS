@@ -7,41 +7,33 @@ class PublisherListItem extends StatelessWidget {
   final Publisher publisher;
   final VoidCallback onTap;
 
+  /// Space around the card. The default suits a vertical list; a grid supplies
+  /// its own spacing and passes [EdgeInsets.zero].
+  final EdgeInsetsGeometry? margin;
+
   const PublisherListItem({
     super.key,
     required this.publisher,
     required this.onTap,
+    this.margin,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 4),
+      margin: margin ?? const EdgeInsets.symmetric(vertical: 4),
       decoration: BoxDecoration(
         color: AppConstants.secondaryBackground,
         borderRadius: BorderRadius.circular(8),
       ),
       child: InkWell(
         onTap: onTap,
+        hoverColor: AppConstants.tertiaryBackground,
         borderRadius: BorderRadius.circular(8),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Row(
             children: [
-              Container(
-                width: 52,
-                height: 52,
-                decoration: BoxDecoration(
-                  color: AppConstants.tertiaryBackground,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(
-                  Icons.business_rounded,
-                  color: AppConstants.accentColor,
-                  size: 28,
-                ),
-              ),
-              const SizedBox(width: 16),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -57,30 +49,27 @@ class PublisherListItem extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 4),
-                    Row(
+                    const SizedBox(height: 6),
+                    // Wraps rather than overflows: in a narrow grid cell the
+                    // badge and its facts do not fit on one line.
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 4,
+                      crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
                         _buildBadge(publisher.subType.toUpperCase()),
-                        if (publisher.founded != null) ...[
-                          const SizedBox(width: 8),
+                        if (publisher.founded != null)
                           _buildInfoText('Est. ${publisher.founded}'),
-                        ],
-                        if (publisher.closed != null) ...[
-                          const SizedBox(width: 8),
+                        if (publisher.closed != null)
                           _buildInfoText('Closed ${publisher.closed}', isError: true),
-                        ],
-                        if (publisher.imprints.isNotEmpty) ...[
-                          const SizedBox(width: 8),
+                        if (publisher.imprints.isNotEmpty)
                           _buildInfoText('${publisher.imprints.length} Imprints'),
-                        ],
-                        if (publisher.links.isNotEmpty) ...[
-                          const SizedBox(width: 8),
+                        if (publisher.links.isNotEmpty)
                           Icon(
                             Icons.link_rounded,
                             size: 14,
                             color: AppConstants.accentColor.withValues(alpha: 0.6),
                           ),
-                        ],
                       ],
                     ),
                     if (publisher.description != null && publisher.description!.isNotEmpty) ...[
@@ -98,6 +87,7 @@ class PublisherListItem extends StatelessWidget {
                   ],
                 ),
               ),
+              const SizedBox(width: 8),
               Icon(
                 Icons.chevron_right_rounded,
                 color: AppConstants.textMutedColor.withValues(alpha: 0.5),

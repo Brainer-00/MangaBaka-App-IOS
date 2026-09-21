@@ -46,6 +46,18 @@ void main() {
   });
 
   group('Publisher', () {
+    test('reads years sent as strings, blanks or numbers', () {
+      final p = Publisher.fromJson({
+        'id': 1,
+        'name': 'X',
+        'founded': '1990',
+        'closed': '',
+      });
+      expect(p.founded, 1990);
+      expect(p.closed, isNull);
+      expect(Publisher.fromJson({'id': 1, 'name': 'X', 'founded': 1990.0}).founded, 1990);
+    });
+
     test('fromJson parses minimal payload', () {
       final p = Publisher.fromJson({'id': 1, 'name': 'Shueisha'});
       expect(p.id, '1');

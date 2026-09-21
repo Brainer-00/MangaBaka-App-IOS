@@ -8,16 +8,22 @@ class StaffListItem extends StatelessWidget {
   final Staff staff;
   final VoidCallback? onTap;
 
+  /// Space around the card. The default suits a vertical list; a grid supplies
+  /// its own spacing and passes [EdgeInsets.zero].
+  final EdgeInsetsGeometry? margin;
+
   const StaffListItem({
     super.key,
     required this.staff,
     this.onTap,
+    this.margin,
   });
 
   @override
   Widget build(BuildContext context) {
     return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      margin:
+          margin ?? const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       color: AppConstants.secondaryBackground,
       elevation: 0,
       shape: RoundedRectangleBorder(
@@ -25,25 +31,21 @@ class StaffListItem extends StatelessWidget {
       ),
       child: ListTile(
         contentPadding: const EdgeInsets.all(12),
-        leading: ClipRRect(
-          borderRadius: BorderRadius.circular(8),
-          child: SizedBox(
-            width: 50,
-            height: 50,
-            child: staff.image != null
-                ? WidgetUtils.networkImage(
+        // A person with no photo gets no stand-in glyph: a grey tile with a
+        // silhouette says nothing and costs the name its room.
+        leading: staff.image == null
+            ? null
+            : ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: SizedBox(
+                  width: 50,
+                  height: 50,
+                  child: WidgetUtils.networkImage(
                     url: staff.image!,
                     fit: BoxFit.cover,
-                  )
-                : Container(
-                    color: AppConstants.tertiaryBackground,
-                    child: Icon(
-                      Icons.person,
-                      color: AppConstants.textMutedColor,
-                    ),
                   ),
-          ),
-        ),
+                ),
+              ),
         title: Text(
           staff.name,
           style: AppTypography.sans(

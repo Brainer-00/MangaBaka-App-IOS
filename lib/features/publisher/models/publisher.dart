@@ -29,6 +29,15 @@ class Publisher {
     this.note,
   });
 
+  /// The API sends years as numbers or as strings ("1990"), and sometimes as
+  /// an empty string for "unknown"; anything unreadable is null.
+  static int? _asInt(Object? value) {
+    if (value is int) return value;
+    if (value is num) return value.toInt();
+    if (value is String) return int.tryParse(value.trim());
+    return null;
+  }
+
   factory Publisher.fromJson(Map<String, dynamic> json) {
     return Publisher(
       id: json['id']?.toString() ?? '',
@@ -49,8 +58,8 @@ class Publisher {
               ?.map((i) => Publisher.fromJson(i as Map<String, dynamic>))
               .toList() ??
           [],
-      founded: json['founded'] as int?,
-      closed: json['closed'] as int?,
+      founded: _asInt(json['founded']),
+      closed: _asInt(json['closed']),
       description: json['description']?.toString(),
       note: json['note']?.toString(),
     );

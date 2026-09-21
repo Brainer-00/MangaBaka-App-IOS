@@ -11,23 +11,28 @@ class JsonUtils {
     return value as T?;
   }
 
-  /// v1 nests each cover size as `{x1, x2}` and the original as
-  /// `raw: {url, ...}`; the v2 endpoints (discover, v2 search) flatten both to
-  /// plain URL strings. Both shapes are accepted so a series parsed from
-  /// either API version still renders a cover.
+  /// v1 nests each cover size as `{x1, x2}` or `{url, ...}` and the original
+  /// as `raw: {url, ...}`; the v2 endpoints flatten both to plain URL strings.
+  /// Both `cover` and `cover_image` shapes are accepted.
   static String getCover(Map<String, dynamic> map) {
-    final cover = map['cover'];
+    final cover = map['cover'] ?? map['cover_image'];
     if (cover is! Map) return '';
-    final sized = cover['x350'];
-    if (sized is Map && sized['x1'] is String) return sized['x1'] as String;
+    final sized = cover['x350'] ?? cover['x250'] ?? cover['x150'];
+    if (sized is Map) {
+      if (sized['url'] is String) return sized['url'] as String;
+      if (sized['x1'] is String) return sized['x1'] as String;
+    }
     if (sized is String) return sized;
     final fallback = cover['x250'] ?? cover['x150'];
+    if (fallback is Map && fallback['url'] is String) {
+      return fallback['url'] as String;
+    }
     if (fallback is String) return fallback;
     return getRawCover(map);
   }
 
   static String getRawCover(Map<String, dynamic> map) {
-    final cover = map['cover'];
+    final cover = map['cover'] ?? map['cover_image'];
     if (cover is! Map) return '';
     final raw = cover['raw'];
     if (raw is Map && raw['url'] is String) return raw['url'] as String;
