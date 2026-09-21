@@ -5,11 +5,13 @@ import 'package:mangabaka_app/core/localization/localization_service.dart';
 class BrowseShortcuts extends StatelessWidget {
   final Function(String, String, {String? type}) onNavigate;
   final VoidCallback onMix;
+  final VoidCallback onDiscoveryQueue;
 
   const BrowseShortcuts({
     super.key,
     required this.onNavigate,
     required this.onMix,
+    required this.onDiscoveryQueue,
   });
 
   /// Builds a [ShortcutSection] for a content type (e.g. 'manga', 'novel').
@@ -57,6 +59,10 @@ class BrowseShortcuts extends StatelessWidget {
                   ShortcutButtonEntry(
                     label: l10n.translate('mix'),
                     onPressed: onMix,
+                  ),
+                  ShortcutButtonEntry(
+                    label: l10n.translate('discovery_queue'),
+                    onPressed: onDiscoveryQueue,
                   ),
                 ],
               ),

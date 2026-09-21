@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:mangabaka_app/core/constants/app_constants.dart';
 import 'package:mangabaka_app/core/localization/localization_service.dart';
 import 'package:mangabaka_app/core/theme/app_typography.dart';
+import 'package:mangabaka_app/desktop/desktop_layout.dart';
+import 'package:mangabaka_app/desktop/widgets/desktop_list_controls.dart';
 import 'package:mangabaka_app/features/browse/controllers/mix_controller.dart';
 import 'package:mangabaka_app/features/browse/utils/browse_helpers.dart';
 import 'package:mangabaka_app/features/browse/widgets/mix/mix_dna_section.dart';
@@ -274,15 +276,29 @@ class _MixScreenState extends State<MixScreen> {
   Widget _dnaSection(LocalizationService l10n) =>
       MixDnaSection(dna: _controller.dna, l10n: l10n);
 
-  Widget _resultsHeader(LocalizationService l10n) => Padding(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-        child: MixSectionHeader(
-          icon: Icons.auto_awesome_rounded,
-          title: l10n.translate('mix_results'),
-          trailing: '${_controller.results.length}',
-          trailingFontSize: 16,
-        ),
-      );
+  Widget _resultsHeader(LocalizationService l10n) {
+    final header = MixSectionHeader(
+      icon: Icons.auto_awesome_rounded,
+      title: l10n.translate('mix_results'),
+      trailing: '${_controller.results.length}',
+      trailingFontSize: 16,
+    );
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+      // The same list-style toggle Browse carries, so a mix can be read as a
+      // grid or a list without a trip to settings. It writes the Browse style,
+      // which is what the results below already follow.
+      child: DesktopLayout.isActive(context)
+          ? Row(
+              children: [
+                Expanded(child: header),
+                const DesktopListStyleToggle(scope: DesktopListScope.browse),
+              ],
+            )
+          : header,
+    );
+  }
 
   Widget _resultsSliver(LocalizationService l10n) => MixResultsSliver(
         controller: _controller,

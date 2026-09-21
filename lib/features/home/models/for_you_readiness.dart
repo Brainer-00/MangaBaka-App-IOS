@@ -16,7 +16,7 @@ class ForYouReadiness {
   bool get isReady => !coldStart;
 
   factory ForYouReadiness.fromJson(Map<String, dynamic> json) {
-    final data = (json['data'] as Map?)?.cast<String, dynamic>() ?? const {};
+    final data = (json['data'] as Map?)?.cast<String, dynamic>() ?? json;
     return ForYouReadiness(
       coldStart: data['cold_start'] == true,
       profileStale: data['profile_stale'] == true,

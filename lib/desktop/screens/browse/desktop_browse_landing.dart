@@ -13,11 +13,13 @@ import 'package:mangabaka_app/desktop/widgets/desktop_surfaces.dart';
 class DesktopBrowseLanding extends StatelessWidget {
   final void Function(String header, String sortBy, {String? type}) onNavigate;
   final VoidCallback onMix;
+  final VoidCallback onDiscoveryQueue;
 
   const DesktopBrowseLanding({
     super.key,
     required this.onNavigate,
     required this.onMix,
+    required this.onDiscoveryQueue,
   });
 
   /// (API type, l10n key for the card title).
@@ -41,7 +43,29 @@ class DesktopBrowseLanding extends StatelessWidget {
         40,
       ),
       children: [
-        _MixCard(onTap: onMix),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final isWide = constraints.maxWidth >= 720;
+            final queueCard = _DiscoveryQueueCard(onTap: onDiscoveryQueue);
+            final mixCard = _MixCard(onTap: onMix);
+            if (isWide) {
+              return Row(
+                children: [
+                  Expanded(child: queueCard),
+                  const SizedBox(width: 16),
+                  Expanded(child: mixCard),
+                ],
+              );
+            }
+            return Column(
+              children: [
+                queueCard,
+                const SizedBox(height: 12),
+                mixCard,
+              ],
+            );
+          },
+        ),
         const SizedBox(height: DesktopTokens.sectionGap),
         DesktopSectionTitle(title: l10n.translate('discover')),
         LayoutBuilder(
@@ -81,6 +105,65 @@ class DesktopBrowseLanding extends StatelessWidget {
           },
         ),
       ],
+    );
+  }
+}
+
+class _DiscoveryQueueCard extends StatelessWidget {
+  final VoidCallback onTap;
+
+  const _DiscoveryQueueCard({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = LocalizationService();
+    return DesktopHoverSurface(
+      onTap: onTap,
+      idleColor: AppConstants.secondaryBackground,
+      hoverColor: AppConstants.tertiaryBackground,
+      borderRadius: BorderRadius.circular(DesktopTokens.panelRadius),
+      padding: const EdgeInsets.fromLTRB(30, 26, 26, 26),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.auto_awesome_rounded,
+                      size: 20,
+                      color: AppConstants.accentColor,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      l10n.translate('discovery_queue').toUpperCase(),
+                      style: AppTypography.display(
+                        color: AppConstants.textColor,
+                        fontSize: 24,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  l10n.translate('discovery_queue_subtitle'),
+                  style: AppTypography.sans(
+                    color: AppConstants.textMutedColor,
+                    fontSize: 14.5,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          DesktopPillButton(
+            label: l10n.translate('discovery_queue_start'),
+            primary: true,
+            onPressed: onTap,
+          ),
+        ],
+      ),
     );
   }
 }

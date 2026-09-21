@@ -9,6 +9,7 @@ import 'package:mangabaka_app/features/browse/models/browse_type.dart';
 import 'package:mangabaka_app/features/browse/models/search_filters.dart';
 import 'package:mangabaka_app/features/browse/screens/browse_results_screen.dart';
 import 'package:mangabaka_app/features/browse/screens/mix_screen.dart';
+import 'package:mangabaka_app/features/home/screens/discovery_queue_screen.dart';
 import 'package:mangabaka_app/features/browse/services/camera_scan_launcher.dart';
 import 'package:mangabaka_app/features/browse/utils/browse_helpers.dart';
 import 'package:mangabaka_app/features/browse/widgets/browse_app_bar.dart';
@@ -173,6 +174,14 @@ class BrowseScreenState extends State<BrowseScreen> {
     Navigator.push(context, AppTransitions.slideRight(const MixScreen()));
   }
 
+  void _navigateToDiscoveryQueue() {
+    _logger.info('Navigating to DiscoveryQueueScreen');
+    Navigator.push(
+      context,
+      AppTransitions.slideRight(const DiscoveryQueueScreen()),
+    );
+  }
+
   // ─── Build ───────────────────────────────────────────────────────────────
 
   @override
@@ -279,6 +288,7 @@ class BrowseScreenState extends State<BrowseScreen> {
             onNavigateToDetail: _navigateToDetail,
             onNavigateToResults: _navigateToBrowseResults,
             onNavigateToMix: _navigateToMix,
+            onNavigateToDiscoveryQueue: _navigateToDiscoveryQueue,
           ),
         ],
       ),

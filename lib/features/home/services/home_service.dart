@@ -119,17 +119,32 @@ class HomeService {
     final headers = await _authHeaders();
     if (headers == null) return const [];
 
-    // No `exclude_user_library` here: despite the name it takes a 32-char
-    // user id (and is flagged alpha), and recommendations already leave the
-    // caller's own library out.
-    return _fetchRail(
-      ApiClient.uri('${AppConstants.baseApiUrl}/my/series/recommendations', {
+    try {
+      final uri = ApiClient.uri('${AppConstants.baseApiUrl}/my/series/recommendations', {
         'limit': limit,
         ..._contentParams(),
-      }),
-      'for-you',
-      headers: headers,
-    );
+      });
+      final series = await _api
+          .withContext('home:for-you')
+          .getJson(
+            uri,
+            operation: 'fetch for-you',
+            parse: (json) {
+              final list = (json is Map) ? (json['results'] ?? json['data']) : null;
+              if (list is! List) return const <Series>[];
+              return list
+                  .whereType<Map>()
+                  .map((m) => Series.fromRecommendationJson(m.cast<String, dynamic>()))
+                  .toList();
+            },
+            headers: headers,
+          );
+      _logger.info('HomeService for-you returned ${series.length} series');
+      return series;
+    } catch (e) {
+      _logger.warning('HomeService failed to fetch for-you: $e');
+      return const [];
+    }
   }
 
   /// The user's top genres from their taste profile. Empty when logged out, when
