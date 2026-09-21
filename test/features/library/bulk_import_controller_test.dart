@@ -85,6 +85,55 @@ void main() {
       ]);
     });
 
+    test('a row whose source named a state is added in that state', () async {
+      final c = build(matches: {
+        'A': [_series('1', 'A')],
+        'B': [_series('2', 'B')],
+        'C': [_series('3', 'C')],
+      });
+      await c.start('title,status\nA,Completed\nB,\nC,Dropped');
+      c.setTargetState('reading');
+
+      final created = await c.addSelected();
+
+      expect(created, 3);
+      // B named no state, so it takes the one chosen for the import.
+      expect(batches, [
+        ['1', 'completed'],
+        ['2', 'reading'],
+        ['3', 'dropped'],
+      ]);
+    });
+
+    test('ignoring the file statuses puts every row in the chosen state',
+        () async {
+      final c = build(matches: {
+        'A': [_series('1', 'A')],
+        'B': [_series('2', 'B')],
+      });
+      await c.start('title,status\nA,Completed\nB,Dropped', useStates: false);
+      c.setTargetState('paused');
+
+      await c.addSelected();
+
+      expect(batches, [
+        ['1', '2', 'paused'],
+      ]);
+    });
+
+    test('reset returns to the input step', () async {
+      final c = build(matches: {
+        'A': [_series('1', 'A')],
+      });
+      await c.start('A');
+      expect(c.hasRows, isTrue);
+
+      c.reset();
+
+      expect(c.hasRows, isFalse);
+      expect(c.isMatching, isFalse);
+    });
+
     test('choosing another candidate re-checks the library', () async {
       final c = build(
         matches: {

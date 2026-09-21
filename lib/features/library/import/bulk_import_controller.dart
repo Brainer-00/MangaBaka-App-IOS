@@ -6,6 +6,7 @@ import 'package:mangabaka_app/core/constants/app_constants.dart';
 import 'package:mangabaka_app/core/logging/logging_service.dart';
 import 'package:mangabaka_app/core/network/api_client.dart';
 import 'package:mangabaka_app/core/network/api_envelope.dart';
+import 'package:mangabaka_app/features/library/import/import_parser.dart';
 import 'package:mangabaka_app/features/series/models/series.dart';
 
 /// Resolves a pasted title to canonical series via `/v2/series/match`.
@@ -59,12 +60,16 @@ enum ImportRowStatus {
 /// One line of the pasted list and what it resolved to.
 class ImportRow {
   final String query;
+
+  /// The state this row's source asked for (a MyAnimeList "On-Hold", a CSV
+  /// status column), or null to use the state chosen for the whole import.
+  final String? sourceState;
   ImportRowStatus status = ImportRowStatus.pending;
   List<Series> candidates = const [];
   int chosen = 0;
   bool selected = false;
 
-  ImportRow(this.query);
+  ImportRow(this.query, {this.sourceState});
 
   Series? get match => candidates.isEmpty ? null : candidates[chosen];
 
@@ -78,7 +83,7 @@ class BulkImportController extends ChangeNotifier {
 
   /// Longest list accepted. Each line is a request, so an accidental paste of a
   /// whole document should not become hundreds of them.
-  static const int maxTitles = 200;
+  static const int maxTitles = ImportParser.maxTitles;
 
   /// Matches in flight at once - enough to be quick, few enough to stay under
   /// the API's rate limit.
@@ -126,28 +131,33 @@ class BulkImportController extends ChangeNotifier {
 
   /// Splits pasted text into titles: one per line, list markers ("1.", "-",
   /// "*") and surrounding whitespace removed, blanks and repeats dropped.
-  static List<String> parseTitles(String text) {
-    final marker = RegExp(r'^\s*(?:[-*•]+|\d+[.)])\s+');
-    final seen = <String>{};
-    final titles = <String>[];
-    for (final line in text.split(RegExp(r'\r?\n'))) {
-      final title = line.replaceFirst(marker, '').trim();
-      if (title.isEmpty) continue;
-      if (!seen.add(title.toLowerCase())) continue;
-      titles.add(title);
-      if (titles.length >= maxTitles) break;
-    }
-    return titles;
-  }
+  static List<String> parseTitles(String text) => [
+    for (final e in ImportParser.parse(text, format: ImportFormat.plain))
+      e.title,
+  ];
 
-  /// Parses [text] and matches every title.
-  Future<void> start(String text) async {
-    final titles = parseTitles(text);
-    _rows = [for (final t in titles) ImportRow(t)];
+  /// Reads [text] as [format], then matches every title.
+  ///
+  /// With [useStates], a state the source gave a title (a MyAnimeList status,
+  /// a CSV column) overrides the state chosen for the whole import for that
+  /// row.
+  Future<void> start(
+    String text, {
+    ImportFormat format = ImportFormat.auto,
+    bool useStates = true,
+    String? fileName,
+  }) async {
+    final entries = ImportParser.parse(
+      text,
+      format: format,
+      useStates: useStates,
+      fileName: fileName,
+    );
+    _rows = [for (final e in entries) ImportRow(e.title, sourceState: e.state)];
     _matchedCount = 0;
-    _matching = titles.isNotEmpty;
+    _matching = entries.isNotEmpty;
     _notify();
-    if (titles.isEmpty) return;
+    if (entries.isEmpty) return;
 
     final rows = _rows;
     var next = 0;
@@ -165,6 +175,14 @@ class BulkImportController extends ChangeNotifier {
       for (var i = 0; i < min(_concurrency, rows.length); i++) worker(),
     ]);
     _matching = false;
+    _notify();
+  }
+
+  /// Returns to the input step, keeping nothing of the last match.
+  void reset() {
+    _rows = [];
+    _matching = false;
+    _matchedCount = 0;
     _notify();
   }
 
@@ -214,19 +232,27 @@ class BulkImportController extends ChangeNotifier {
     _notify();
   }
 
-  /// Adds every selected row in one batch. Returns how many were newly
-  /// created; throws whatever the batch call throws, leaving the rows intact
+  /// Adds every selected row, one batch per state (rows whose source named a
+  /// state go in that state, the rest in the chosen one). Returns how many were
+  /// newly created; throws whatever a batch call throws, leaving the rows intact
   /// so the user can retry.
   Future<int> addSelected() async {
-    final ids = [
-      for (final row in _rows)
-        if (row.selected && row.match != null) row.match!.id,
-    ];
-    if (ids.isEmpty) return 0;
+    final byState = <String, List<String>>{};
+    for (final row in _rows) {
+      final match = row.match;
+      if (!row.selected || match == null) continue;
+      byState.putIfAbsent(row.sourceState ?? _state, () => []).add(match.id);
+    }
+    if (byState.isEmpty) return 0;
+
     _adding = true;
     _notify();
     try {
-      return await _addBatch(ids, _state);
+      var created = 0;
+      for (final entry in byState.entries) {
+        created += await _addBatch(entry.value, entry.key);
+      }
+      return created;
     } finally {
       _adding = false;
       _notify();
