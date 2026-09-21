@@ -12,6 +12,8 @@ import 'package:mangabaka_app/core/localization/localization_service.dart';
 import 'package:mangabaka_app/core/settings/settings_enums.dart';
 import 'package:mangabaka_app/core/di/service_locator.dart';
 import 'package:mangabaka_app/core/theme/app_typography.dart';
+import 'package:mangabaka_app/desktop/desktop_layout.dart';
+import 'package:mangabaka_app/desktop/widgets/desktop_series_row.dart';
 import 'package:mangabaka_app/desktop/widgets/series_hover_preview.dart';
 
 class EntryListItem extends StatefulWidget {
@@ -128,6 +130,43 @@ class _EntryListItemState extends State<EntryListItem> {
   ) {
     final isInLibrary = entry != null;
 
+    // On desktop the list styles are table rows, not the phone's cards: the
+    // row lays out its own progress bar and quick-progress control in columns
+    // instead of having them stacked over it.
+    if (!style.isGrid && DesktopLayout.isActive(context)) {
+      return SeriesHoverPreview(
+        series: widget.series,
+        child: Stack(
+          children: [
+            DesktopSeriesRow(
+              series: widget.series,
+              style: style,
+              displayTitle: displayTitle,
+              heroTagPrefix: widget.heroTagPrefix,
+              progress:
+                  isInLibrary &&
+                      (settings.showLibraryProgress ||
+                          settings.showRemainingProgress)
+                  ? _buildProgressBar(context, entry, style)
+                  : null,
+              trailing: settings.showQuickProgress
+                  ? SeriesQuickActionButton(
+                      series: widget.series,
+                      entry: entry,
+                      onOptimisticProgressChanged: (val) {
+                        setState(() {
+                          _optimisticProgress = val;
+                        });
+                      },
+                    )
+                  : null,
+            ),
+            if (widget.ranking != null) _rankingBadge(),
+          ],
+        ),
+      );
+    }
+
     return SeriesHoverPreview(
       series: widget.series,
       child: Stack(
@@ -161,32 +200,32 @@ class _EntryListItemState extends State<EntryListItem> {
               ),
             ),
 
-          if (widget.ranking != null)
-            Positioned(
-              top: 0,
-              left: 0,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: AppConstants.accentColor,
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(12),
-                    bottomRight: Radius.circular(12),
-                  ),
-                ),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 6,
-                ),
-                child: Text(
-                  '${widget.ranking}',
-                  style: AppTypography.display(
-                    color: AppConstants.onAccent,
-                    fontSize: 15,
-                  ),
-                ),
-              ),
-            ),
+          if (widget.ranking != null) _rankingBadge(),
         ],
+      ),
+    );
+  }
+
+  Widget _rankingBadge() {
+    return Positioned(
+      top: 0,
+      left: 0,
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppConstants.accentColor,
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(12),
+            bottomRight: Radius.circular(12),
+          ),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        child: Text(
+          '${widget.ranking}',
+          style: AppTypography.display(
+            color: AppConstants.onAccent,
+            fontSize: 15,
+          ),
+        ),
       ),
     );
   }

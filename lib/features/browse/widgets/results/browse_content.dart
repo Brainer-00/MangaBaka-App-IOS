@@ -11,6 +11,8 @@ import 'package:mangabaka_app/features/series/widgets/series_list_skeleton.dart'
 import 'package:mangabaka_app/features/series/services/series_service.dart';
 import 'package:mangabaka_app/core/di/service_locator.dart';
 import 'package:mangabaka_app/core/widgets/dynamic_row_height_grid.dart';
+import 'package:mangabaka_app/desktop/desktop_layout.dart';
+import 'package:mangabaka_app/desktop/widgets/desktop_series_row.dart';
 
 import 'package:mangabaka_app/features/browse/models/browse_type.dart';
 import 'package:mangabaka_app/features/publisher/models/publisher.dart';
@@ -30,6 +32,7 @@ class BrowseContent extends StatelessWidget {
   final Function(Series) onNavigateToDetail;
   final Function(String, String, {String? type, String? staff, String? publisher}) onNavigateToResults;
   final VoidCallback onNavigateToMix;
+  final VoidCallback onNavigateToDiscoveryQueue;
 
   const BrowseContent({
     super.key,
@@ -43,6 +46,7 @@ class BrowseContent extends StatelessWidget {
     required this.onNavigateToDetail,
     required this.onNavigateToResults,
     required this.onNavigateToMix,
+    required this.onNavigateToDiscoveryQueue,
   });
 
 
@@ -166,7 +170,7 @@ class BrowseContent extends StatelessWidget {
           );
         }
 
-        return ListView.builder(
+        final list = ListView.builder(
           controller: scrollController,
           itemCount: itemCount,
           itemBuilder: (context, index) {
@@ -182,28 +186,27 @@ class BrowseContent extends StatelessWidget {
             return _buildSeriesItem(searchResults[index] as Series, activeStyle: activeStyle);
           },
         );
+
+        // On desktop the list styles are tables, so they get column labels.
+        if (!DesktopLayout.isActive(context)) return list;
+        return Column(
+          children: [
+            DesktopSeriesListHeader(style: activeStyle),
+            Expanded(child: list),
+          ],
+        );
       },
     );
   }
 
   Widget _buildPublisherResults() {
-    return ListView.builder(
-      controller: scrollController,
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      itemCount: searchResults.length + (isLoadingMore ? 1 : 0),
-      itemBuilder: (context, index) {
-        if (index >= searchResults.length) {
-          if (isLoadingMore && index == searchResults.length) {
-            return const Padding(
-              padding: EdgeInsets.all(16.0),
-              child: Center(child: CircularProgressIndicator()),
-            );
-          }
-          return const SizedBox.shrink();
-        }
+    return _buildPeopleResults(
+      cellHeight: 118,
+      itemBuilder: (context, index, margin) {
         final publisher = searchResults[index] as Publisher;
         return PublisherListItem(
           publisher: publisher,
+          margin: margin,
           onTap: () => CollectionsBrowseScreen.open(
             context,
             publisher: publisher,
@@ -214,28 +217,63 @@ class BrowseContent extends StatelessWidget {
   }
 
   Widget _buildStaffResults() {
-    return ListView.builder(
-      controller: scrollController,
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      itemCount: searchResults.length + (isLoadingMore ? 1 : 0),
-      itemBuilder: (context, index) {
-        if (index >= searchResults.length) {
-          if (isLoadingMore && index == searchResults.length) {
-            return const Padding(
-              padding: EdgeInsets.all(16.0),
-              child: Center(child: CircularProgressIndicator()),
-            );
-          }
-          return const SizedBox.shrink();
-        }
+    return _buildPeopleResults(
+      cellHeight: 88,
+      itemBuilder: (context, index, margin) {
         final staff = searchResults[index] as Staff;
         return StaffListItem(
           staff: staff,
+          margin: margin,
           onTap: () => onNavigateToResults(
             staff.name,
             'popularity_desc',
             staff: staff.name,
           ),
+        );
+      },
+    );
+  }
+
+  /// Publishers and staff share their layout: a plain list on a phone, and a
+  /// grid of cards on desktop — a card stretched across a wide window is mostly
+  /// empty space between the name and the chevron.
+  Widget _buildPeopleResults({
+    required double cellHeight,
+    required Widget Function(BuildContext, int, EdgeInsetsGeometry?) itemBuilder,
+  }) {
+    return Builder(
+      builder: (context) {
+        final itemCount = searchResults.length + (isLoadingMore ? 1 : 0);
+        Widget spinner() => const Padding(
+          padding: EdgeInsets.all(16.0),
+          child: Center(child: CircularProgressIndicator()),
+        );
+
+        if (DesktopLayout.isActive(context)) {
+          return GridView.builder(
+            controller: scrollController,
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+              maxCrossAxisExtent: 460,
+              mainAxisExtent: cellHeight,
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 12,
+            ),
+            itemCount: itemCount,
+            itemBuilder: (context, index) => index >= searchResults.length
+                ? spinner()
+                : itemBuilder(context, index, EdgeInsets.zero),
+          );
+        }
+
+        return ListView.builder(
+          controller: scrollController,
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          itemCount: itemCount,
+          itemBuilder: (context, index) => index >= searchResults.length
+              ? spinner()
+              // Null margin: each card keeps its own list default.
+              : itemBuilder(context, index, null),
         );
       },
     );
@@ -262,6 +300,7 @@ class BrowseContent extends StatelessWidget {
               key: const ValueKey('shortcuts'),
               onNavigate: onNavigateToResults,
               onMix: onNavigateToMix,
+              onDiscoveryQueue: onNavigateToDiscoveryQueue,
             );
 
           } else if (browseType == BrowseType.publishers) {

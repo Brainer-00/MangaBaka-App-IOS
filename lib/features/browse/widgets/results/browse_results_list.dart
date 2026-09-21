@@ -5,6 +5,8 @@ import 'package:mangabaka_app/features/series/widgets/entry_list_item.dart';
 import 'package:mangabaka_app/core/settings/settings_manager.dart';
 import 'package:mangabaka_app/core/settings/settings_enums.dart';
 import 'package:mangabaka_app/core/widgets/dynamic_row_height_grid.dart';
+import 'package:mangabaka_app/desktop/desktop_layout.dart';
+import 'package:mangabaka_app/desktop/widgets/desktop_series_row.dart';
 
 class BrowseResultsList extends StatelessWidget {
   final List<Series> results;
@@ -149,7 +151,7 @@ class BrowseResultsList extends StatelessWidget {
           }
         }
 
-        return ListView.builder(
+        final list = ListView.builder(
           controller: scrollController,
           itemCount: results.length + (isLoading && results.isNotEmpty ? 1 : 0),
           itemBuilder: (context, index) {
@@ -179,6 +181,15 @@ class BrowseResultsList extends StatelessWidget {
                     ),
             );
           },
+        );
+
+        // On desktop the list styles are tables, so they get column labels.
+        if (!DesktopLayout.isActive(context)) return list;
+        return Column(
+          children: [
+            DesktopSeriesListHeader(style: activeStyle),
+            Expanded(child: list),
+          ],
         );
       },
     );

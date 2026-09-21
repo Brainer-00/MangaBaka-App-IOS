@@ -11,6 +11,8 @@ import 'package:mangabaka_app/core/settings/settings_enums.dart';
 import 'package:mangabaka_app/features/series/services/series_service.dart';
 import 'package:mangabaka_app/core/di/service_locator.dart';
 import 'package:mangabaka_app/core/widgets/dynamic_row_height_grid.dart';
+import 'package:mangabaka_app/desktop/desktop_layout.dart';
+import 'package:mangabaka_app/desktop/widgets/desktop_series_row.dart';
 
 class LibraryGridList extends StatelessWidget {
   final List<LibraryEntry> items;
@@ -167,7 +169,7 @@ class LibraryGridList extends StatelessWidget {
           }
         }
 
-        return ListView.builder(
+        final list = ListView.builder(
           controller: scrollController,
           physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -176,6 +178,18 @@ class LibraryGridList extends StatelessWidget {
             index: index,
             child: _buildEntryItem(items[index], seriesService, activeStyle),
           ),
+        );
+
+        // On desktop the list styles are tables, so they get column labels.
+        if (!DesktopLayout.isActive(context)) return list;
+        return Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: DesktopSeriesListHeader(style: activeStyle),
+            ),
+            Expanded(child: list),
+          ],
         );
       },
     );
