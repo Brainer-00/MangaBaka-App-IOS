@@ -24,6 +24,13 @@ class WidgetUtils {
     return AppTooltip(message: message, child: child);
   }
 
+  /// Whether covers of [contentRating] are blurred, per the user's content
+  /// preferences. The one answer every cover should ask, so a rating the user
+  /// blurs is blurred everywhere it shows.
+  static bool isRatingBlurred(String contentRating) => SettingsManager()
+      .blurredContentRatings
+      .contains(contentRating.toLowerCase());
+
   static Widget networkImage({
     required String url,
     double? width,
