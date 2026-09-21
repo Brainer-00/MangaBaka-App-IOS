@@ -1,9 +1,9 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:mangabaka_app/shared/widgets/trackpad_navigation_listener.dart';
+import 'package:mangabaka_app/shared/widgets/window_repaint_guard.dart';
 import 'package:mangabaka_app/features/navigation/screens/main_screen.dart';
 import 'package:mangabaka_app/features/profile/screens/settings_screen.dart';
 import 'package:mangabaka_app/core/constants/app_constants.dart';
@@ -43,8 +43,8 @@ class AppShortcuts extends StatelessWidget {
   Widget build(BuildContext context) {
     return Shortcuts(
       shortcuts: <ShortcutActivator, Intent>{
-        LogicalKeySet(LogicalKeyboardKey.escape): const BackIntent(),
-        LogicalKeySet(LogicalKeyboardKey.f11): const FullscreenIntent(),
+        const SingleActivator(LogicalKeyboardKey.escape): const BackIntent(),
+        const SingleActivator(LogicalKeyboardKey.f11): const FullscreenIntent(),
         LogicalKeySet(LogicalKeyboardKey.control, LogicalKeyboardKey.keyF): const SearchIntent(),
         LogicalKeySet(LogicalKeyboardKey.meta, LogicalKeyboardKey.keyF): const SearchIntent(),
         LogicalKeySet(LogicalKeyboardKey.control, LogicalKeyboardKey.comma): const SettingsIntent(),
@@ -68,6 +68,21 @@ class AppShortcuts extends StatelessWidget {
         actions: <Type, Action<Intent>>{
           BackIntent: CallbackAction<BackIntent>(
             onInvoke: (intent) {
+              if (Platform.isWindows || Platform.isMacOS || Platform.isLinux) {
+                windowManager.isFullScreen().then((isFull) {
+                  if (isFull) {
+                    WindowRepaintGuard.toggleFullscreen();
+                    return;
+                  }
+                  final navigator = AppConstants.navigatorKey.currentState;
+                  if (navigator != null && navigator.canPop()) {
+                    navigator.maybePop();
+                    return;
+                  }
+                  DesktopShell.current?.popContent();
+                });
+                return null;
+              }
               // Dialogs and full-window routes sit on the root navigator and
               // close first; after that, desktop unwinds its content area.
               final navigator = AppConstants.navigatorKey.currentState;
@@ -94,19 +109,17 @@ class AppShortcuts extends StatelessWidget {
           ),
           FullscreenIntent: CallbackAction<FullscreenIntent>(
             onInvoke: (intent) {
-              if (Platform.isWindows || Platform.isMacOS || Platform.isLinux) {
-                windowManager.isFullScreen().then((isFull) {
-                  windowManager.setFullScreen(!isFull);
-                });
-              }
+              WindowRepaintGuard.toggleFullscreen();
               return null;
             },
           ),
           // Search and Refresh are context-dependent and will be handled in specific screens if needed
           // or we can try to find a way to dispatch them.
         },
-        child: TrackpadNavigationListener(
-          child: child,
+        child: WindowRepaintGuard(
+          child: TrackpadNavigationListener(
+            child: child,
+          ),
         ),
       ),
     );

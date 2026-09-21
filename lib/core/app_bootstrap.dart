@@ -58,10 +58,21 @@ class AppBootstrap {
   static Future<void> _configureDesktopWindow() async {
     if (!Platform.isWindows && !Platform.isMacOS && !Platform.isLinux) return;
     await windowManager.ensureInitialized();
+
+    // On Windows, hide the native title bar so the app can draw its own
+    // custom styled title bar and window control buttons.
+    final windowOptions = WindowOptions(
+      minimumSize: _minWindowSize,
+      titleBarStyle:
+          Platform.isWindows ? TitleBarStyle.hidden : TitleBarStyle.normal,
+      windowButtonVisibility: !Platform.isWindows,
+    );
+
     // Deliberately not awaited: it resolves only once the window is shown,
     // which happens after the first frame.
-    windowManager.waitUntilReadyToShow(null, () async {
-      await windowManager.setMinimumSize(_minWindowSize);
+    windowManager.waitUntilReadyToShow(windowOptions, () async {
+      await windowManager.show();
+      await windowManager.focus();
     });
   }
 

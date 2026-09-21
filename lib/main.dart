@@ -7,6 +7,7 @@ import 'package:mangabaka_app/core/constants/app_constants.dart';
 import 'package:mangabaka_app/core/di/service_locator.dart';
 import 'package:mangabaka_app/core/settings/settings_manager.dart';
 import 'package:mangabaka_app/core/theme/app_theme.dart';
+import 'package:mangabaka_app/desktop/widgets/desktop_window_frame.dart';
 import 'package:mangabaka_app/features/navigation/screens/animated_splash_screen.dart';
 import 'package:mangabaka_app/features/navigation/screens/main_screen.dart';
 import 'package:mangabaka_app/features/navigation/screens/onboarding_screen.dart';
@@ -90,8 +91,9 @@ class _MangaBakaAppState extends State<MangaBakaApp> {
             title: AppConstants.appName,
             debugShowCheckedModeBanner: false,
             theme: _themeFor(settings.showTooltips),
-            builder: (context, child) =>
-                BrowserSignInPrompt(child: AppShortcuts(child: child!)),
+            builder: (context, child) => DesktopWindowFrame(
+              child: BrowserSignInPrompt(child: AppShortcuts(child: child!)),
+            ),
             home: AnnotatedRegion<SystemUiOverlayStyle>(
               value: AppTheme.systemOverlay,
               child: Stack(

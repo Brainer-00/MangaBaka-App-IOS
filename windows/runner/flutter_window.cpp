@@ -1,5 +1,6 @@
 #include "flutter_window.h"
 
+#include <dwmapi.h>
 #include <optional>
 
 #include "flutter/generated_plugin_registrant.h"
@@ -65,6 +66,21 @@ FlutterWindow::MessageHandler(HWND hwnd, UINT const message,
     case WM_FONTCHANGE:
       flutter_controller_->engine()->ReloadSystemFonts();
       break;
+
+    case WM_NCPAINT:
+      // Prevent Windows from ever painting the native Vista/Aero title bar or non-client frame.
+      return 0;
+
+    case WM_STYLECHANGED: {
+      if (wparam == GWL_STYLE) {
+        MARGINS margins = {0, 0, 0, 0};
+        DwmExtendFrameIntoClientArea(hwnd, &margins);
+        SetWindowPos(hwnd, nullptr, 0, 0, 0, 0,
+                     SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOOWNERZORDER |
+                         SWP_FRAMECHANGED);
+      }
+      break;
+    }
   }
 
   return Win32Window::MessageHandler(hwnd, message, wparam, lparam);
