@@ -66,4 +66,12 @@ abstract final class DesktopTokens {
   /// Corner radius of desktop panels and cards — tighter than the phone's,
   /// which reads better at desktop density.
   static const double panelRadius = 16;
+
+  /// Total width occupied by the custom window controls on the top right
+  /// (3 buttons at 38px + 2 gaps at 8px + 12px right padding = 142px).
+  static const double windowControlsWidth = 142;
+
+  /// Safe right clearance for page headers and top controls so they never
+  /// clip or collide with the window controls.
+  static const double windowControlsClearance = 160;
 }

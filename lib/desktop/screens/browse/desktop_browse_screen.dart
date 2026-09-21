@@ -15,6 +15,7 @@ import 'package:mangabaka_app/features/browse/models/browse_type.dart';
 import 'package:mangabaka_app/features/browse/models/search_filters.dart';
 import 'package:mangabaka_app/features/browse/screens/browse_results_screen.dart';
 import 'package:mangabaka_app/features/browse/screens/mix_screen.dart';
+import 'package:mangabaka_app/features/home/screens/discovery_queue_screen.dart';
 import 'package:mangabaka_app/features/browse/utils/browse_helpers.dart';
 import 'package:mangabaka_app/features/browse/widgets/results/browse_content.dart';
 import 'package:mangabaka_app/features/browse/widgets/search/mb_search_bar.dart';
@@ -102,6 +103,9 @@ class DesktopBrowseScreenState extends State<DesktopBrowseScreen>
   void _openMix() =>
       Navigator.of(context).push(AppTransitions.slideRight(const MixScreen()));
 
+  void _openDiscoveryQueue() => Navigator.of(context)
+      .push(AppTransitions.slideRight(const DiscoveryQueueScreen()));
+
   void _onResultSelected(AutocompleteSeriesResult result) =>
       _openDetail(BrowseHelpers.convertAutocompleteToSeries(result));
 
@@ -179,48 +183,81 @@ class DesktopBrowseScreenState extends State<DesktopBrowseScreen>
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(
+          padding: EdgeInsets.fromLTRB(
             DesktopTokens.pagePadding,
-            24,
-            DesktopTokens.pagePadding,
+            10,
+            DesktopLayout.isDesktopPlatform
+                ? DesktopTokens.windowControlsClearance
+                : DesktopTokens.pagePadding,
             0,
           ),
-          child: Row(
-            children: [
-              Text(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final searchBar = ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 720),
+                child: MBSearchBar(
+                  focusNode: _searchFocus,
+                  controller: c.searchController,
+                  initialFilters: c.currentFilters,
+                  showFilterButton: false,
+                  suggestionsAllowed: c.currentType == BrowseType.series,
+                  onResultSelected: _onResultSelected,
+                  onChanged: c.updateSearchQuery,
+                  onSubmitted: (_) => c.searchSeries(),
+                ),
+              );
+
+              final clearButton = searching
+                  ? DesktopPillButton(
+                      label: l10n.translate('clear_all'),
+                      icon: Icons.close_rounded,
+                      onPressed: _clearSearch,
+                    )
+                  : null;
+
+              final titleText = Text(
                 l10n.translate('browse').toUpperCase(),
                 style: AppTypography.display(
                   color: AppConstants.textColor,
                   fontSize: 30,
                 ),
-              ),
-              const SizedBox(width: 28),
-              Expanded(
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 720),
-                    child: MBSearchBar(
-                      focusNode: _searchFocus,
-                      controller: c.searchController,
-                      initialFilters: c.currentFilters,
-                      showFilterButton: false,
-                      onResultSelected: _onResultSelected,
-                      onChanged: c.updateSearchQuery,
-                      onSubmitted: (_) => c.searchSeries(),
+              );
+
+              if (constraints.maxWidth < 620) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      children: [
+                        titleText,
+                        const Spacer(),
+                        if (clearButton != null) clearButton,
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    searchBar,
+                  ],
+                );
+              }
+
+              return Row(
+                children: [
+                  titleText,
+                  const SizedBox(width: 28),
+                  Expanded(
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: searchBar,
                     ),
                   ),
-                ),
-              ),
-              if (searching) ...[
-                const SizedBox(width: 12),
-                DesktopPillButton(
-                  label: l10n.translate('clear_all'),
-                  icon: Icons.close_rounded,
-                  onPressed: _clearSearch,
-                ),
-              ],
-            ],
+                  if (clearButton != null) ...[
+                    const SizedBox(width: 12),
+                    clearButton,
+                  ],
+                ],
+              );
+            },
           ),
         ),
         Padding(
@@ -230,40 +267,74 @@ class DesktopBrowseScreenState extends State<DesktopBrowseScreen>
             DesktopTokens.pagePadding,
             10,
           ),
-          child: Row(
-            children: [
-              if (c.currentFilters.isEmpty)
-                DesktopSegmented<BrowseType>(
-                  value: c.currentType,
-                  segments: [
-                    (BrowseType.series, l10n.translate('series'), null),
-                    (BrowseType.publishers, l10n.translate('publishers'), null),
-                    (BrowseType.staff, l10n.translate('staff'), null),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final leftControls = Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (c.currentFilters.isEmpty)
+                    DesktopSegmented<BrowseType>(
+                      value: c.currentType,
+                      segments: [
+                        (BrowseType.series, l10n.translate('series'), null),
+                        (BrowseType.publishers, l10n.translate('publishers'), null),
+                        (BrowseType.staff, l10n.translate('staff'), null),
+                      ],
+                      onChanged: c.setType,
+                    ),
+                  if (searching && c.totalResults > 0) ...[
+                    const SizedBox(width: 16),
+                    Text(
+                      '${c.totalResults}${c.isTotalCapped ? '+' : ''} '
+                      '${l10n.translate(c.currentType.name)}',
+                      style: AppTypography.sans(
+                        color: AppConstants.textMutedColor,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                   ],
-                  onChanged: c.setType,
-                ),
-              if (searching && c.totalResults > 0) ...[
-                const SizedBox(width: 16),
-                Text(
-                  '${c.totalResults}${c.isTotalCapped ? '+' : ''} '
-                  '${l10n.translate(c.currentType.name)}',
-                  style: AppTypography.sans(
-                    color: AppConstants.textMutedColor,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
+                ],
+              );
+
+              final rightControls = c.currentType == BrowseType.series
+                  ? Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        DesktopSortMenu(
+                          filters: c.currentFilters,
+                          onChanged: c.updateFilters,
+                        ),
+                        const SizedBox(width: 10),
+                        const DesktopListStyleToggle(scope: DesktopListScope.browse),
+                      ],
+                    )
+                  : null;
+
+              if (rightControls == null) {
+                return SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: leftControls,
+                );
+              }
+
+              return Wrap(
+                alignment: WrapAlignment.spaceBetween,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: 16,
+                runSpacing: 10,
+                children: [
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: leftControls,
                   ),
-                ),
-              ],
-              const Spacer(),
-              if (c.currentType == BrowseType.series) ...[
-                DesktopSortMenu(
-                  filters: c.currentFilters,
-                  onChanged: c.updateFilters,
-                ),
-                const SizedBox(width: 10),
-                const DesktopListStyleToggle(scope: DesktopListScope.browse),
-              ],
-            ],
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: rightControls,
+                  ),
+                ],
+              );
+            },
           ),
         ),
         if (!searching)
@@ -271,6 +342,7 @@ class DesktopBrowseScreenState extends State<DesktopBrowseScreen>
             child: DesktopBrowseLanding(
               onNavigate: _openResults,
               onMix: _openMix,
+              onDiscoveryQueue: _openDiscoveryQueue,
             ),
           )
         else
@@ -287,6 +359,7 @@ class DesktopBrowseScreenState extends State<DesktopBrowseScreen>
               onNavigateToDetail: _openDetail,
               onNavigateToResults: _openResults,
               onNavigateToMix: _openMix,
+              onNavigateToDiscoveryQueue: _openDiscoveryQueue,
             ),
           ),
       ],

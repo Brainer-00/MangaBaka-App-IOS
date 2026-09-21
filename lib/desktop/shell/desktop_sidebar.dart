@@ -59,44 +59,62 @@ class DesktopSidebar extends StatelessWidget {
           maxWidth: width,
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+            child: Stack(
+              fit: StackFit.expand,
               children: [
-                const SizedBox(height: 20),
-                _Brand(collapsed: collapsed, onToggle: onToggleCollapsed),
-                const SizedBox(height: 22),
-                for (var i = 0; i < navItems.length; i++) ...[
-                  _SidebarItem(
-                    icon: selectedIndex == i
-                        ? navItems[i].selectedIcon
-                        : navItems[i].icon,
-                    label: l10n.translate(navItems[i].labelKey),
-                    shortcut: 'Ctrl+${i + 1}',
-                    selected: selectedIndex == i,
-                    collapsed: collapsed,
-                    onTap: () => onSelected(i),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const SizedBox(height: 13),
+                    _Brand(collapsed: collapsed, onToggle: onToggleCollapsed),
+                    const SizedBox(height: 22),
+                    for (var i = 0; i < navItems.length; i++) ...[
+                      _SidebarItem(
+                        icon: selectedIndex == i
+                            ? navItems[i].selectedIcon
+                            : navItems[i].icon,
+                        label: l10n.translate(navItems[i].labelKey),
+                        shortcut: 'Ctrl+${i + 1}',
+                        selected: selectedIndex == i,
+                        collapsed: collapsed,
+                        onTap: () => onSelected(i),
+                      ),
+                      const SizedBox(height: 4),
+                    ],
+                    const Spacer(),
+                    _SidebarItem(
+                      icon: selectedIndex == settingsIndex
+                          ? Icons.settings
+                          : Icons.settings_outlined,
+                      label: l10n.translate('settings'),
+                      shortcut: 'Ctrl+,',
+                      selected: selectedIndex == settingsIndex,
+                      collapsed: collapsed,
+                      onTap: () => onSelected(settingsIndex),
+                    ),
+                    const SizedBox(height: 10),
+                    Divider(height: 1, color: AppConstants.borderColor),
+                    const SizedBox(height: 10),
+                    _AccountChip(
+                      collapsed: collapsed,
+                      onTap: () => onSelected(NavTabs.profile),
+                    ),
+                    const SizedBox(height: 14),
+                  ],
+                ),
+                // Halfway down the collapsed bar, where its edge would open from:
+                // the logo at the top also expands it, but nothing says so.
+                if (collapsed)
+                  Align(
+                    alignment: Alignment.center,
+                    child: DesktopIconButton(
+                      icon: Icons.keyboard_double_arrow_right_rounded,
+                      size: 20,
+                      filled: true,
+                      tooltip: l10n.translate('expand_sidebar'),
+                      onPressed: onToggleCollapsed,
+                    ),
                   ),
-                  const SizedBox(height: 4),
-                ],
-                const Spacer(),
-                _SidebarItem(
-                  icon: selectedIndex == settingsIndex
-                      ? Icons.settings
-                      : Icons.settings_outlined,
-                  label: l10n.translate('settings'),
-                  shortcut: 'Ctrl+,',
-                  selected: selectedIndex == settingsIndex,
-                  collapsed: collapsed,
-                  onTap: () => onSelected(settingsIndex),
-                ),
-                const SizedBox(height: 10),
-                Divider(height: 1, color: AppConstants.borderColor),
-                const SizedBox(height: 10),
-                _AccountChip(
-                  collapsed: collapsed,
-                  onTap: () => onSelected(NavTabs.profile),
-                ),
-                const SizedBox(height: 14),
               ],
             ),
           ),
@@ -156,7 +174,6 @@ class _Brand extends StatelessWidget {
     );
   }
 }
-
 
 class _SidebarItem extends StatelessWidget {
   final IconData icon;

@@ -30,55 +30,104 @@ class DesktopPageHeader extends StatelessWidget {
     this.leading,
     this.padding = const EdgeInsets.fromLTRB(
       DesktopTokens.pagePadding,
-      28,
+      10,
       DesktopTokens.pagePadding,
-      20,
+      16,
     ),
   });
 
   @override
   Widget build(BuildContext context) {
+    final resolvedPadding = padding.resolve(Directionality.of(context));
+    final double additionalRight = DesktopLayout.isDesktopPlatform
+        ? (DesktopTokens.windowControlsClearance - resolvedPadding.right)
+            .clamp(0.0, double.infinity)
+        : 0.0;
+    final effectivePadding =
+        resolvedPadding.add(EdgeInsets.only(right: additionalRight));
+
+    final titleWidget = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          title.toUpperCase(),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: AppTypography.display(
+            color: AppConstants.textColor,
+            fontSize: 30,
+            height: 1.1,
+          ),
+        ),
+        if (subtitle != null && subtitle!.isNotEmpty) ...[
+          const SizedBox(height: 4),
+          Text(
+            subtitle!,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: AppTypography.sans(
+              color: AppConstants.textMutedColor,
+              fontSize: 14,
+            ),
+          ),
+        ],
+      ],
+    );
+
     return Padding(
-      padding: padding,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          if (leading != null) ...[leading!, const SizedBox(width: 12)],
-          Expanded(
-            child: Column(
+      padding: effectivePadding,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          if (actions.isEmpty) {
+            return Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                if (leading != null) ...[leading!, const SizedBox(width: 12)],
+                Expanded(child: titleWidget),
+              ],
+            );
+          }
+
+          if (constraints.maxWidth < 540) {
+            return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  title.toUpperCase(),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTypography.display(
-                    color: AppConstants.textColor,
-                    fontSize: 30,
-                    height: 1.1,
-                  ),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    if (leading != null) ...[leading!, const SizedBox(width: 12)],
+                    Expanded(child: titleWidget),
+                  ],
                 ),
-                if (subtitle != null && subtitle!.isNotEmpty) ...[
-                  const SizedBox(height: 4),
-                  Text(
-                    subtitle!,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: AppTypography.sans(
-                      color: AppConstants.textMutedColor,
-                      fontSize: 14,
-                    ),
-                  ),
-                ],
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 10,
+                  runSpacing: 8,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: actions,
+                ),
               ],
-            ),
-          ),
-          for (var i = 0; i < actions.length; i++) ...[
-            if (i > 0) const SizedBox(width: 10),
-            actions[i],
-          ],
-        ],
+            );
+          }
+
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (leading != null) ...[leading!, const SizedBox(width: 12)],
+              Expanded(child: titleWidget),
+              const SizedBox(width: 16),
+              Wrap(
+                spacing: 10,
+                runSpacing: 8,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                alignment: WrapAlignment.end,
+                children: actions,
+              ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -130,22 +179,33 @@ class DesktopSectionTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final titleWidget = Text(
+      title.toUpperCase(),
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      style: AppTypography.display(
+        color: AppConstants.textColor,
+        fontSize: fontSize,
+      ),
+    );
+
+    if (trailing == null) {
+      return Padding(
+        padding: padding,
+        child: titleWidget,
+      );
+    }
+
     return Padding(
       padding: padding,
-      child: Row(
+      child: Wrap(
+        alignment: WrapAlignment.spaceBetween,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        spacing: 12,
+        runSpacing: 8,
         children: [
-          Expanded(
-            child: Text(
-              title.toUpperCase(),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: AppTypography.display(
-                color: AppConstants.textColor,
-                fontSize: fontSize,
-              ),
-            ),
-          ),
-          if (trailing != null) trailing!,
+          titleWidget,
+          trailing!,
         ],
       ),
     );
@@ -279,8 +339,21 @@ class DesktopPillButton extends StatelessWidget {
   final IconData? icon;
   final VoidCallback? onPressed;
   final bool primary;
+
+  /// A destructive action (sign out, delete): tinted and lettered in the app's
+  /// error red instead of neutral, so it reads as one without shouting.
+  final bool danger;
   final Widget? trailing;
   final String? tooltip;
+
+  /// The fill of a [danger] button, and its hover: the error red at low
+  /// strength, on the same footing as the neutral pill it replaces.
+  static final Color dangerColor = AppConstants.errorColor.withValues(
+    alpha: 0.16,
+  );
+  static final Color dangerHoverColor = AppConstants.errorColor.withValues(
+    alpha: 0.28,
+  );
 
   const DesktopPillButton({
     super.key,
@@ -288,20 +361,29 @@ class DesktopPillButton extends StatelessWidget {
     this.icon,
     this.onPressed,
     this.primary = false,
+    this.danger = false,
     this.trailing,
     this.tooltip,
   });
 
   @override
   Widget build(BuildContext context) {
-    final fg = primary ? AppConstants.onAccent : AppConstants.textColor;
+    final fg = danger
+        ? AppConstants.errorColor
+        : primary
+        ? AppConstants.onAccent
+        : AppConstants.textColor;
     return DesktopHoverSurface(
       onTap: onPressed,
       tooltip: tooltip,
-      idleColor: primary
+      idleColor: danger
+          ? dangerColor
+          : primary
           ? AppConstants.accentColor
           : AppConstants.tertiaryBackground,
-      hoverColor: primary
+      hoverColor: danger
+          ? dangerHoverColor
+          : primary
           ? Color.lerp(AppConstants.accentColor, Colors.white, 0.15)
           : AppConstants.borderColor,
       borderRadius: BorderRadius.circular(AppConstants.pillRadius),
@@ -516,6 +598,60 @@ class DesktopSidePanel extends StatelessWidget {
         border: Border(right: BorderSide(color: AppConstants.borderColor)),
       ),
       child: child,
+    );
+  }
+}
+
+/// One row of a desktop settings card: a muted glyph, a display-caps title with
+/// its explanation beneath, and the control on the right.
+class DesktopSettingRow extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final Widget control;
+
+  const DesktopSettingRow({
+    super.key,
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.control,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        SizedBox(
+          width: 24,
+          child: Icon(icon, color: AppConstants.textMutedColor, size: 20),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title.toUpperCase(),
+                style: AppTypography.display(
+                  color: AppConstants.textColor,
+                  fontSize: 14,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                subtitle,
+                style: AppTypography.sans(
+                  color: AppConstants.textMutedColor,
+                  fontSize: 12.5,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: 16),
+        control,
+      ],
     );
   }
 }

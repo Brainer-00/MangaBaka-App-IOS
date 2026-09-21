@@ -254,7 +254,6 @@ class DesktopLibraryScreenState extends State<DesktopLibraryScreen>
                   icon: Icons.playlist_add_rounded,
                   onPressed: () => BulkImportScreen.open(context),
                 ),
-                const SizedBox(width: 8),
                 DesktopPillButton(
                   label: l10n.translate(
                     status.isSyncing ? 'syncing' : 'sync_now',
@@ -279,33 +278,61 @@ class DesktopLibraryScreenState extends State<DesktopLibraryScreen>
                 DesktopTokens.pagePadding,
                 12,
               ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Align(
-                      alignment: Alignment.centerLeft,
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 560),
-                        child: LibrarySearchBar(
-                          focusNode: _searchFocus,
-                          entriesStream: _session.entriesStream,
-                          onChanged: _setQuery,
-                          onResultSelected: _onResultSelected,
-                          initialFilters: _filters,
-                          showFilterButton: false,
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final searchBar = ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 560),
+                    child: LibrarySearchBar(
+                      focusNode: _searchFocus,
+                      entriesStream: _session.entriesStream,
+                      onChanged: _setQuery,
+                      onResultSelected: _onResultSelected,
+                      initialFilters: _filters,
+                      showFilterButton: false,
+                    ),
+                  );
+
+                  final rightControls = Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      DesktopSortMenu(
+                        filters: _filters,
+                        onChanged: _setFilters,
+                        library: true,
+                      ),
+                      const SizedBox(width: 10),
+                      const DesktopListStyleToggle(scope: DesktopListScope.library),
+                    ],
+                  );
+
+                  if (constraints.maxWidth < 600) {
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        searchBar,
+                        const SizedBox(height: 10),
+                        SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: rightControls,
+                        ),
+                      ],
+                    );
+                  }
+
+                  return Row(
+                    children: [
+                      Expanded(
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: searchBar,
                         ),
                       ),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  DesktopSortMenu(
-                    filters: _filters,
-                    onChanged: _setFilters,
-                    library: true,
-                  ),
-                  const SizedBox(width: 10),
-                  const DesktopListStyleToggle(scope: DesktopListScope.library),
-                ],
+                      const SizedBox(width: 16),
+                      rightControls,
+                    ],
+                  );
+                },
               ),
             ),
             Expanded(child: _grid(l10n, helper)),

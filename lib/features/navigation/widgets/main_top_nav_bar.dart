@@ -3,6 +3,7 @@ import 'package:mangabaka_app/core/constants/app_constants.dart';
 import 'package:mangabaka_app/core/localization/localization_service.dart';
 import 'package:mangabaka_app/core/theme/app_typography.dart';
 import 'package:mangabaka_app/core/utils/widget_utils.dart';
+import 'package:mangabaka_app/desktop/desktop_layout.dart';
 import 'package:mangabaka_app/features/navigation/models/nav_destinations.dart';
 import 'package:mangabaka_app/features/navigation/widgets/top_nav_search_field.dart';
 import 'package:mangabaka_app/features/profile/screens/settings_screen.dart';
@@ -45,6 +46,10 @@ class MainTopNavBar extends StatelessWidget implements PreferredSizeWidget {
     final searchField =
         showSearchField ? TopNavSearchField.build(selectedIndex) : null;
 
+    final rightPadding = DesktopLayout.isDesktopPlatform
+        ? DesktopTokens.windowControlsClearance
+        : 20.0;
+
     return Container(
       height: _height,
       decoration: BoxDecoration(
@@ -56,38 +61,56 @@ class MainTopNavBar extends StatelessWidget implements PreferredSizeWidget {
       child: SafeArea(
         bottom: false,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Row(
-            children: [
-              const _Brand(),
-              const SizedBox(width: 32),
-              Row(
-                mainAxisSize: MainAxisSize.min,
+          padding: EdgeInsets.only(left: 20, right: rightPadding),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final isCompact = constraints.maxWidth < 780;
+
+              return Row(
                 children: [
-                  for (var i = 0; i < navItems.length; i++)
-                    _NavTab(
-                      item: navItems[i],
-                      label: l10n.translate(navItems[i].labelKey),
-                      isSelected: selectedIndex == i,
-                      onTap: () => onDestinationSelected(i),
+                  _Brand(compact: isCompact),
+                  SizedBox(width: isCompact ? 16 : 28),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          for (var i = 0; i < navItems.length; i++)
+                            _NavTab(
+                              item: navItems[i],
+                              label: l10n.translate(navItems[i].labelKey),
+                              isSelected: selectedIndex == i,
+                              compact: isCompact,
+                              onTap: () => onDestinationSelected(i),
+                            ),
+                        ],
+                      ),
                     ),
+                  ),
+                  if (searchField != null) ...[
+                    const SizedBox(width: 8),
+                    ConstrainedBox(
+                      constraints: BoxConstraints(
+                        maxWidth: isCompact ? 160 : _searchWidth,
+                      ),
+                      child: searchField,
+                    ),
+                    const SizedBox(width: 8),
+                  ] else
+                    const SizedBox(width: 8),
+                  WidgetUtils.tooltip(
+                    message: l10n.translate('settings'),
+                    child: IconButton(
+                      icon: const Icon(Icons.settings_outlined),
+                      iconSize: 20,
+                      onPressed: () => SettingsScreen.show(context),
+                      color: AppConstants.textMutedColor,
+                    ),
+                  ),
                 ],
-              ),
-              const Spacer(),
-              if (searchField != null) ...[
-                SizedBox(width: _searchWidth, child: searchField),
-                const SizedBox(width: 24),
-              ],
-              WidgetUtils.tooltip(
-                message: l10n.translate('settings'),
-                child: IconButton(
-                  icon: const Icon(Icons.settings_outlined),
-                  iconSize: 20,
-                  onPressed: () => SettingsScreen.show(context),
-                  color: AppConstants.textMutedColor,
-                ),
-              ),
-            ],
+              );
+            },
           ),
         ),
       ),
@@ -96,7 +119,9 @@ class MainTopNavBar extends StatelessWidget implements PreferredSizeWidget {
 }
 
 class _Brand extends StatelessWidget {
-  const _Brand();
+  final bool compact;
+
+  const _Brand({this.compact = false});
 
   @override
   Widget build(BuildContext context) {
@@ -115,14 +140,16 @@ class _Brand extends StatelessWidget {
             height: 28,
           ),
         ),
-        const SizedBox(width: 10),
-        Text(
-          'MANGABAKA',
-          style: AppTypography.display(
-            color: AppConstants.textColor,
-            fontSize: 17,
+        if (!compact) ...[
+          const SizedBox(width: 10),
+          Text(
+            'MANGABAKA',
+            style: AppTypography.display(
+              color: AppConstants.textColor,
+              fontSize: 17,
+            ),
           ),
-        ),
+        ],
       ],
     );
   }
@@ -133,12 +160,14 @@ class _NavTab extends StatelessWidget {
   final NavItem item;
   final String label;
   final bool isSelected;
+  final bool compact;
   final VoidCallback onTap;
 
   const _NavTab({
     required this.item,
     required this.label,
     required this.isSelected,
+    this.compact = false,
     required this.onTap,
   });
 
@@ -147,44 +176,50 @@ class _NavTab extends StatelessWidget {
     final color =
         isSelected ? AppConstants.textColor : AppConstants.textMutedColor;
 
-    return Padding(
-      padding: const EdgeInsets.only(right: 22),
-      child: InkWell(
-        onTap: onTap,
-        // Square: the underline is the selection cue, and a rounded hover
-        // shape would fight it.
-        borderRadius: BorderRadius.zero,
-        child: AnimatedContainer(
-          duration: AppConstants.shortAnimationDuration,
-          curve: Curves.easeInOut,
-          padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 6),
-          decoration: BoxDecoration(
-            border: Border(
-              bottom: BorderSide(
-                color: isSelected
-                    ? AppConstants.accentColor
-                    : Colors.transparent,
-                width: 2,
-              ),
+    final tabContent = InkWell(
+      onTap: onTap,
+      // Square: the underline is the selection cue, and a rounded hover
+      // shape would fight it.
+      borderRadius: BorderRadius.zero,
+      child: AnimatedContainer(
+        duration: AppConstants.shortAnimationDuration,
+        curve: Curves.easeInOut,
+        padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 6),
+        decoration: BoxDecoration(
+          border: Border(
+            bottom: BorderSide(
+              color: isSelected
+                  ? AppConstants.accentColor
+                  : Colors.transparent,
+              width: 2,
             ),
           ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                isSelected ? item.selectedIcon : item.icon,
-                size: 18,
-                color: color,
-              ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              isSelected ? item.selectedIcon : item.icon,
+              size: 18,
+              color: color,
+            ),
+            if (!compact) ...[
               const SizedBox(width: 6),
               Text(
                 label.toUpperCase(),
                 style: AppTypography.display(fontSize: 13, color: color),
               ),
             ],
-          ),
+          ],
         ),
       ),
+    );
+
+    return Padding(
+      padding: EdgeInsets.only(right: compact ? 12 : 20),
+      child: compact
+          ? WidgetUtils.tooltip(message: label, child: tabContent)
+          : tabContent,
     );
   }
 }

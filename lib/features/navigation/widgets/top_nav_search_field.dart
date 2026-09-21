@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mangabaka_app/features/browse/models/browse_type.dart';
 import 'package:mangabaka_app/features/browse/screens/browse_screen.dart';
 import 'package:mangabaka_app/features/browse/widgets/search/mb_search_bar.dart';
 import 'package:mangabaka_app/features/library/screens/library_screen.dart';
@@ -56,6 +57,7 @@ class TopNavSearchField {
       focusNode: state.searchFocusNode,
       controller: controller.searchController,
       initialFilters: controller.currentFilters,
+      suggestionsAllowed: controller.currentType == BrowseType.series,
       onScanTap: state.handleBarcodeScan,
       onResultSelected: state.handleResultSelected,
       onChanged: controller.updateSearchQuery,

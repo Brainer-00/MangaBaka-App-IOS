@@ -135,7 +135,7 @@ class _DesktopFilterPanelState extends State<DesktopFilterPanel> {
         ((_f.sortBy != null && _f.sortBy!.isNotEmpty) ? 1 : 0);
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(20, 24, 20, 40),
+      padding: const EdgeInsets.fromLTRB(20, 14, 20, 40),
       children: [
         if (widget.header != null) ...[
           widget.header!,
