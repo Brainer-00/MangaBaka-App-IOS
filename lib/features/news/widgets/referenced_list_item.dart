@@ -44,6 +44,7 @@ class ReferencedListItem extends StatelessWidget {
                 borderRadius: BorderRadius.circular(AppConstants.denseRadius),
                 child: WidgetUtils.networkImage(
                   url: series.coverUrl,
+                  blurred: WidgetUtils.isRatingBlurred(series.contentRating),
                   fit: BoxFit.cover,
                   width: double.infinity,
                   memCacheWidth: 240,

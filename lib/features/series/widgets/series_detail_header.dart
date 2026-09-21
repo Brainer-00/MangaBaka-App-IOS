@@ -59,6 +59,7 @@ class SeriesDetailHeader extends StatelessWidget {
             borderRadius: BorderRadius.circular(8),
             child: WidgetUtils.networkImage(
               url: series.coverUrl,
+              blurred: WidgetUtils.isRatingBlurred(series.contentRating),
               height: 160,
               width: 110,
               fit: BoxFit.cover,

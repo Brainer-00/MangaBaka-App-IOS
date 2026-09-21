@@ -195,6 +195,7 @@ class _FeaturedCard extends StatelessWidget {
                       borderRadius: BorderRadius.circular(12),
                       child: WidgetUtils.networkImage(
                         url: series.coverUrl,
+                        blurred: WidgetUtils.isRatingBlurred(series.contentRating),
                         memCacheWidth: 500,
                       ),
                     ),
@@ -361,6 +362,7 @@ class _RankedRow extends StatelessWidget {
                 borderRadius: BorderRadius.circular(6),
                 child: WidgetUtils.networkImage(
                   url: series.coverUrl,
+                  blurred: WidgetUtils.isRatingBlurred(series.contentRating),
                   memCacheWidth: 120,
                 ),
               ),

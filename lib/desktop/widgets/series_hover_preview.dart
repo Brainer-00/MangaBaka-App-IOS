@@ -376,6 +376,7 @@ class _SeriesPreviewOverlayState extends State<_SeriesPreviewOverlay>
                                       child: series.coverUrl.isNotEmpty
                                           ? WidgetUtils.networkImage(
                                               url: series.coverUrl,
+                                              blurred: WidgetUtils.isRatingBlurred(series.contentRating),
                                               fit: BoxFit.cover,
                                               memCacheWidth: 460,
                                             )

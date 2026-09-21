@@ -108,6 +108,35 @@ class Series {
     return Series.fromJson(patched);
   }
 
+  /// Parses an item from `/my/series/recommendations` (`results` array).
+  factory Series.fromRecommendationJson(Map<String, dynamic> json) {
+    final patched = Map<String, dynamic>.from(json);
+    if (patched['cover'] == null && patched['cover_image'] != null) {
+      patched['cover'] = patched['cover_image'];
+    }
+    if (patched['type'] == null && patched['media_type'] != null) {
+      patched['type'] = patched['media_type'];
+    }
+    if ((patched['rating'] == null || patched['rating'] == '') &&
+        patched['score'] != null) {
+      patched['rating'] = patched['score'].toString();
+    }
+    if (patched['year'] == null && patched['published_year'] != null) {
+      patched['year'] = patched['published_year'].toString();
+    }
+    if (patched['tags'] == null && patched['reason'] is Map) {
+      final reason = patched['reason'] as Map;
+      final topTags = reason['top_tags'] as List?;
+      if (topTags != null) {
+        patched['tags'] = topTags
+            .map((t) => t is Map ? (t['name'] ?? '').toString() : t.toString())
+            .where((s) => s.isNotEmpty)
+            .toList();
+      }
+    }
+    return Series.fromSimilarJson(patched);
+  }
+
   //Thanks GPT4.1
   factory Series.fromJson(Map<String, dynamic> json) {
     final source = (json['source'] as Map?)?.cast<String, dynamic>();

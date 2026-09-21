@@ -142,6 +142,7 @@ class SeriesTitleBlock extends StatelessWidget {
 Widget seriesBannerImage(Series series, {required int memCacheWidth}) {
   return WidgetUtils.networkImage(
     url: series.coverUrl,
+    blurred: WidgetUtils.isRatingBlurred(series.contentRating),
     fit: BoxFit.cover,
     memCacheWidth: memCacheWidth,
   );

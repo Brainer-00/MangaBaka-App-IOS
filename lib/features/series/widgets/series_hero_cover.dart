@@ -1,3 +1,4 @@
+import 'package:mangabaka_app/features/series/widgets/unblur_warning.dart';
 import 'package:flutter/material.dart';
 import 'package:mangabaka_app/features/series/models/series.dart';
 import 'package:mangabaka_app/core/constants/app_constants.dart';
@@ -37,11 +38,17 @@ class _SeriesHeroCoverState extends State<SeriesHeroCover> {
         onEnter: (_) => setState(() => _hovered = true),
         onExit: (_) => setState(() => _hovered = false),
         child: GestureDetector(
-          onTap: () {
+          onTap: () async {
             final imageUrl = widget.series.rawCoverUrl.isNotEmpty
                 ? widget.series.rawCoverUrl
                 : widget.series.coverUrl;
             if (imageUrl.isNotEmpty) {
+              // Fullscreen shows the cover clear, so a blurred one asks first.
+              if (WidgetUtils.isRatingBlurred(widget.series.contentRating) &&
+                  !await confirmUnblur(context)) {
+                return;
+              }
+              if (!context.mounted) return;
               Navigator.push(
                 context,
                 MaterialPageRoute(

@@ -1,4 +1,5 @@
-﻿import 'package:mangabaka_app/core/theme/app_typography.dart';
+﻿import 'package:mangabaka_app/features/series/widgets/unblur_warning.dart';
+import 'package:mangabaka_app/core/theme/app_typography.dart';
 import 'package:flutter/material.dart';
 import 'package:mangabaka_app/core/constants/app_constants.dart';
 import 'package:mangabaka_app/features/series/models/series_cover.dart';
@@ -188,8 +189,16 @@ class _HoverableCoverItemState extends State<_HoverableCoverItem> {
       onEnter: (_) => setState(() => _hovered = true),
       onExit: (_) => setState(() => _hovered = false),
       child: GestureDetector(
-        onTap: () {
+        onTap: () async {
           if (widget.url != null) {
+            final rating = widget.contentRating;
+            // Fullscreen shows the cover clear, so a blurred one asks first.
+            if (rating != null &&
+                WidgetUtils.isRatingBlurred(rating) &&
+                !await confirmUnblur(context)) {
+              return;
+            }
+            if (!context.mounted) return;
             final allUrls = widget.allCovers
                 .map((c) => c.url ?? c.urlX350 ?? c.urlX250 ?? c.urlX150)
                 .whereType<String>()

@@ -107,6 +107,7 @@ class _DesktopCoverCardState extends State<DesktopCoverCard> {
                       borderRadius: BorderRadius.circular(10),
                       child: WidgetUtils.networkImage(
                         url: series.coverUrl,
+                        blurred: WidgetUtils.isRatingBlurred(series.contentRating),
                         width: widget.width,
                         height: widget.width * 1.5,
                         memCacheWidth: (widget.width * 2).round(),

@@ -464,6 +464,7 @@ Widget build(BuildContext context) {
               borderRadius: BorderRadius.circular(6),
               child: WidgetUtils.networkImage(
                 url: series.coverUrl,
+                blurred: WidgetUtils.isRatingBlurred(series.contentRating),
                 width: 40,
                 height: 60,
                 memCacheWidth: 100,
