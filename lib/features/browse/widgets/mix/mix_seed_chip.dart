@@ -83,7 +83,7 @@ class _Thumbnail extends StatelessWidget {
                 memCacheWidth: 80,
               )
             : Container(
-                color: AppConstants.accentColor.withValues(alpha: 0.3),
+                color: AppConstants.tertiaryBackground,
                 child: Icon(
                   Icons.book_rounded,
                   color: AppConstants.accentColor,

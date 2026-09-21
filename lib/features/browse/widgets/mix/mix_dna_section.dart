@@ -149,20 +149,8 @@ class _DnaBar extends StatelessWidget {
                 child: Container(
                   height: 8,
                   decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        AppConstants.accentColor.withValues(alpha: 0.7),
-                        AppConstants.accentColor,
-                      ],
-                    ),
+                    color: AppConstants.accentColor,
                     borderRadius: BorderRadius.circular(4),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppConstants.accentColor.withValues(alpha: 0.3),
-                        blurRadius: 4,
-                        offset: const Offset(0, 1),
-                      ),
-                    ],
                   ),
                 ),
               ),

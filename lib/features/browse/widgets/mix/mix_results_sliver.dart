@@ -3,6 +3,8 @@ import 'package:mangabaka_app/core/constants/app_constants.dart';
 import 'package:mangabaka_app/core/localization/localization_service.dart';
 import 'package:mangabaka_app/core/settings/settings_enums.dart';
 import 'package:mangabaka_app/core/settings/settings_manager.dart';
+import 'package:mangabaka_app/desktop/desktop_layout.dart';
+import 'package:mangabaka_app/desktop/widgets/desktop_series_row.dart';
 import 'package:mangabaka_app/features/browse/controllers/mix_controller.dart';
 import 'package:mangabaka_app/features/browse/widgets/mix/mix_state_views.dart';
 import 'package:mangabaka_app/features/series/models/series.dart';
@@ -46,12 +48,12 @@ class MixResultsSliver extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       sliver: ListenableBuilder(
         listenable: SettingsManager(),
-        builder: (context, _) => _buildResults(SettingsManager()),
+        builder: (context, _) => _buildResults(context, SettingsManager()),
       ),
     );
   }
 
-  Widget _buildResults(SettingsManager settings) {
+  Widget _buildResults(BuildContext context, SettingsManager settings) {
     final style = settings.resolvedBrowseListStyle;
 
     final delegate = SliverChildBuilderDelegate(
@@ -71,7 +73,17 @@ class MixResultsSliver extends StatelessWidget {
 
     // The list styles are row layouts, not cells — forcing them through a grid
     // delegate squeezes them into cover-shaped boxes.
-    if (!style.isGrid) return SliverList(delegate: delegate);
+    if (!style.isGrid) {
+      final list = SliverList(delegate: delegate);
+      if (!DesktopLayout.isActive(context)) return list;
+      // On desktop the list styles are tables, so they get column labels.
+      return SliverMainAxisGroup(
+        slivers: [
+          SliverToBoxAdapter(child: DesktopSeriesListHeader(style: style)),
+          list,
+        ],
+      );
+    }
 
     final columns = settings.resolvedBrowseGridColumnCount;
 

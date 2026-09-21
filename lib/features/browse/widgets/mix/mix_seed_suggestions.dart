@@ -154,7 +154,7 @@ class _SuggestionCard extends StatelessWidget {
                 width: 24,
                 height: 24,
                 decoration: BoxDecoration(
-                  color: AppConstants.accentColor.withValues(alpha: 0.15),
+                  color: AppConstants.tertiaryBackground,
                   shape: BoxShape.circle,
                 ),
                 child: Icon(Icons.add_rounded,
