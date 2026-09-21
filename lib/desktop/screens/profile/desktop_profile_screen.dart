@@ -227,48 +227,88 @@ class DesktopProfileScreenState extends State<DesktopProfileScreen>
             constraints: const BoxConstraints(
               maxWidth: DesktopTokens.maxPageWidth,
             ),
-            child: ListView(
-              padding: const EdgeInsets.fromLTRB(
-                DesktopTokens.pagePadding,
-                32,
-                DesktopTokens.pagePadding,
-                48,
-              ),
-              children: [
-                _IdentityCard(
-                  name: _displayName(l10n),
-                  username: profile!.preferredUsername,
-                  role: profile!.role,
-                  avatarUrl: profile!.avatarUrl,
-                  onLogout: _logout,
-                ),
-                const SizedBox(height: DesktopTokens.sectionGap),
-                DesktopSectionTitle(title: l10n.translate('reading_stats')),
-                _statsGrid(l10n),
-                if (_highestRated != null || _mostReread != null) ...[
-                  const SizedBox(height: DesktopTokens.sectionGap),
-                  DesktopSectionTitle(title: l10n.translate('standout_picks')),
-                  _standouts(l10n),
-                ],
-                const SizedBox(height: DesktopTokens.sectionGap),
-                _activity(
-                  l10n.translate('recently_changed'),
-                  recentlyChanged,
-                  onNearEnd: fetchRecentlyChanged,
-                  loading: isLoadingChanged && recentlyChanged.isEmpty,
-                ),
-                const SizedBox(height: DesktopTokens.sectionGap),
-                _activity(
-                  l10n.translate('recently_added'),
-                  recentlyAdded,
-                  onNearEnd: fetchRecentlyAdded,
-                  loading: isLoadingAdded && recentlyAdded.isEmpty,
-                ),
-              ],
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                // The overview needs a column of its own only if the main
+                // column keeps a useful width beside it.
+                final sidebar = constraints.maxWidth >= _sidebarMinWidth;
+                return sidebar
+                    ? Row(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Expanded(child: _mainColumn(l10n, inline: false)),
+                          SizedBox(
+                            width: _sidebarWidth,
+                            child: ListView(
+                              padding: const EdgeInsets.fromLTRB(
+                                0,
+                                32,
+                                DesktopTokens.pagePadding,
+                                48,
+                              ),
+                              children: [_overview(l10n)],
+                            ),
+                          ),
+                        ],
+                      )
+                    : _mainColumn(l10n, inline: true);
+              },
             ),
           ),
         );
       },
+    );
+  }
+
+  /// Width of the right-hand overview column, and the page width from which it
+  /// is shown there rather than inline under the identity card.
+  static const double _sidebarWidth = 372;
+  static const double _sidebarMinWidth = 1080;
+
+  /// Everything but the overview: identity, standout picks, recent activity.
+  /// With [inline] the overview is included too, after the identity card.
+  Widget _mainColumn(LocalizationService l10n, {required bool inline}) {
+    return ListView(
+      padding: EdgeInsets.fromLTRB(
+        DesktopTokens.pagePadding,
+        32,
+        // Beside the sidebar the gutter between the two is the sidebar's; on
+        // its own the column keeps the page's right gutter.
+        inline ? DesktopTokens.pagePadding : DesktopTokens.pagePadding * 0.75,
+        48,
+      ),
+      children: [
+        _IdentityCard(
+          name: _displayName(l10n),
+          username: profile!.preferredUsername,
+          role: profile!.role,
+          avatarUrl: profile!.avatarUrl,
+          onLogout: _logout,
+        ),
+        if (inline) ...[
+          const SizedBox(height: DesktopTokens.sectionGap),
+          _overview(l10n, twoColumns: true),
+        ],
+        if (_highestRated != null || _mostReread != null) ...[
+          const SizedBox(height: DesktopTokens.sectionGap),
+          DesktopSectionTitle(title: l10n.translate('standout_picks')),
+          _standouts(l10n),
+        ],
+        const SizedBox(height: DesktopTokens.sectionGap),
+        _activity(
+          l10n.translate('recently_changed'),
+          recentlyChanged,
+          onNearEnd: fetchRecentlyChanged,
+          loading: isLoadingChanged && recentlyChanged.isEmpty,
+        ),
+        const SizedBox(height: DesktopTokens.sectionGap),
+        _activity(
+          l10n.translate('recently_added'),
+          recentlyAdded,
+          onNearEnd: fetchRecentlyAdded,
+          loading: isLoadingAdded && recentlyAdded.isEmpty,
+        ),
+      ],
     );
   }
 
@@ -279,62 +319,88 @@ class DesktopProfileScreenState extends State<DesktopProfileScreen>
     return l10n.translate('your_profile');
   }
 
-  Widget _statsGrid(LocalizationService l10n) {
-    final tiles = [
-      _StatTile(
+  /// The reading overview as one card of labelled figures.
+  ///
+  /// A column of rows rather than the phone's tile grid: in the sidebar it is
+  /// narrow and tall, so each statistic reads as "label … value" down the card.
+  /// With [twoColumns] — inline, across the page — the rows are split over two
+  /// columns instead, so the card is not a tall strip of empty space.
+  Widget _overview(LocalizationService l10n, {bool twoColumns = false}) {
+    final rows = [
+      (
         Icons.book_rounded,
         l10n.translate('total_series'),
         NumberUtils.formatCount(totalSeries),
       ),
-      _StatTile(
+      (
         Icons.article_rounded,
         l10n.translate('chapters_read'),
         NumberUtils.formatCount(chaptersRead),
       ),
-      _StatTile(
+      (
         Icons.library_books_rounded,
         l10n.translate('volumes_read'),
         NumberUtils.formatCount(volumesRead),
       ),
-      _StatTile(
+      (
         Icons.star_rounded,
         l10n.translate('mean_score'),
         meanScore.toStringAsFixed(1),
       ),
-      _StatTile(
+      (
         Icons.check_circle_rounded,
         l10n.translate('completion'),
         '${_completionRate.toStringAsFixed(1)}%',
       ),
-      _StatTile(
+      (
         Icons.flag_rounded,
         l10n.translate('finish_rate'),
         '${_finishRate.toStringAsFixed(1)}%',
       ),
-      _StatTile(
+      (
         Icons.replay_rounded,
         l10n.translate('total_rereads'),
         NumberUtils.formatCount(_totalRereads),
       ),
     ];
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        const gap = 16.0;
-        // All seven in a row when they fit, otherwise four-and-three — never
-        // a lone tile orphaned on its own row.
-        final columns = constraints.maxWidth >= 7 * 190
-            ? 7
-            : constraints.maxWidth >= 4 * 190
-            ? 4
-            : 2;
-        final width = (constraints.maxWidth - gap * (columns - 1)) / columns;
-        return Wrap(
-          spacing: gap,
-          runSpacing: gap,
-          children: [for (final t in tiles) SizedBox(width: width, child: t)],
-        );
-      },
+    Widget column(List<(IconData, String, String)> items) => Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (var i = 0; i < items.length; i++) ...[
+          if (i > 0) Divider(height: 1, color: AppConstants.borderColor),
+          _OverviewRow(icon: items[i].$1, label: items[i].$2, value: items[i].$3),
+        ],
+      ],
+    );
+
+    // The larger half first, so an odd count leaves the short column on the
+    // right.
+    final split = (rows.length + 1) ~/ 2;
+
+    return DesktopCard(
+      showBorder: false,
+      padding: const EdgeInsets.fromLTRB(22, 20, 22, 10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          DesktopSectionTitle(
+            title: l10n.translate('reading_stats'),
+            padding: const EdgeInsets.only(bottom: 6),
+          ),
+          if (twoColumns)
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(child: column(rows.sublist(0, split))),
+                const SizedBox(width: 40),
+                Expanded(child: column(rows.sublist(split))),
+              ],
+            )
+          else
+            column(rows),
+        ],
+      ),
     );
   }
 
@@ -526,50 +592,43 @@ class _IdentityCard extends StatelessWidget {
   }
 }
 
-class _StatTile extends StatelessWidget {
+class _OverviewRow extends StatelessWidget {
   final IconData icon;
   final String label;
   final String value;
 
-  const _StatTile(this.icon, this.label, this.value);
+  const _OverviewRow({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return DesktopCard(
-      showBorder: false,
-      padding: const EdgeInsets.all(18),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 14),
+      child: Row(
         children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Text(
-                  value,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTypography.display(
-                    color: AppConstants.textColor,
-                    fontSize: 26,
-                  ),
-                ),
+          Icon(icon, size: 18, color: AppConstants.textMutedColor),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Text(
+              label.toUpperCase(),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: AppTypography.monoLabel(
+                color: AppConstants.textMutedColor,
+                fontSize: 11.5,
               ),
-              const SizedBox(width: 8),
-              Padding(
-                padding: const EdgeInsets.only(top: 4),
-                child: Icon(icon, size: 18, color: AppConstants.textMutedColor),
-              ),
-            ],
+            ),
           ),
-          const SizedBox(height: 2),
+          const SizedBox(width: 12),
           Text(
-            label.toUpperCase(),
+            value,
             maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: AppTypography.monoLabel(
-              color: AppConstants.textMutedColor,
-              fontSize: 10.5,
+            style: AppTypography.display(
+              color: AppConstants.textColor,
+              fontSize: 22,
             ),
           ),
         ],
@@ -606,6 +665,7 @@ class _StandoutCard extends StatelessWidget {
             borderRadius: BorderRadius.circular(10),
             child: WidgetUtils.networkImage(
               url: series.coverUrl,
+              blurred: WidgetUtils.isRatingBlurred(series.contentRating),
               width: 72,
               height: 108,
               memCacheWidth: 160,
