@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:mangabaka_app/core/constants/mock_series_data.dart';
 import 'package:mangabaka_app/core/settings/settings_enums.dart';
 import 'package:mangabaka_app/core/widgets/dynamic_row_height_grid.dart';
+import 'package:mangabaka_app/desktop/desktop_layout.dart';
+import 'package:mangabaka_app/desktop/widgets/desktop_series_row.dart';
 import 'package:mangabaka_app/features/library/models/library_entry.dart';
 import 'package:mangabaka_app/features/series/widgets/entry_list_item.dart';
 
@@ -45,7 +47,18 @@ class ListStyleLivePreview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (!style.isGrid) return _item(0);
+    if (!style.isGrid) {
+      if (!DesktopLayout.isActive(context)) return _item(0);
+      // On desktop the list styles are tables: show the column labels and a
+      // few rows, so the density of the chosen style is actually visible.
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          DesktopSeriesListHeader(style: style),
+          for (var i = 0; i < 3; i++) _item(i),
+        ],
+      );
+    }
 
     if (gridColumnCount == 0) {
       return LayoutBuilder(
